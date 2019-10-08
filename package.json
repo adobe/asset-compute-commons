@@ -1,0 +1,31 @@
+{
+  "name": "@nui/asset-compute-commons",
+  "version": "1.0.0",
+  "main": "index.js",
+  "description": "Common utilities needed by all Asset Compute serverless actions",
+  "author": {
+    "name": "Adobe Systems Inc."
+  },
+  "publishConfig": {
+    "registry": "https://artifactory.corp.adobe.com/artifactory/api/npm/npm-nui-release-local"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.corp.adobe.com/nui/asset-compute-commons.git"
+  },
+  "dependencies": {
+    "@nui/adobe-io-events-client": "^1.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "node-fetch": "^2.6.0",
+    "tmp": "^0.1.0"
+  },
+  "devDependencies": {
+    "@nui/eslint-config": "^1.0.3",
+    "mocha": "^6.2.1",
+    "nock": "^11.4.0"
+  },
+  "scripts": {
+    "pretest": "eslint ./",
+    "test": "./node_modules/.bin/mocha"
+  }
+}
