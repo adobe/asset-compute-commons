@@ -17,8 +17,8 @@
 
 'use strict';
 
-const AssetComputeEvents = require('./src/events');
-const AssetComputeMetrics = require('./src/metrics');
+const AssetComputeEvents = require('./lib/events');
+const AssetComputeMetrics = require('./lib/metrics');
 
 module.exports = {
   AssetComputeEvents,
