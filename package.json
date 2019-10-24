@@ -21,9 +21,15 @@
   },
   "devDependencies": {
     "@nui/eslint-config": "^1.0.3",
+    "@stryker-mutator/core": "^2.1.0",
+    "@stryker-mutator/html-reporter": "^2.1.0",
+    "@stryker-mutator/javascript-mutator": "^2.1.0",
+    "@stryker-mutator/mocha-framework": "^2.1.0",
+    "@stryker-mutator/mocha-runner": "^2.1.0",
     "mocha": "^6.2.1",
     "nock": "^11.4.0",
-    "nyc": "^14.1.1"
+    "nyc": "^14.1.1",
+    "stryker": "^0.35.1"
   },
   "scripts": {
     "pretest": "eslint ./",
