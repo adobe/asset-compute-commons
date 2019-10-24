@@ -22,10 +22,11 @@
   "devDependencies": {
     "@nui/eslint-config": "^1.0.3",
     "mocha": "^6.2.1",
-    "nock": "^11.4.0"
+    "nock": "^11.4.0",
+    "nyc": "^14.1.1"
   },
   "scripts": {
     "pretest": "eslint ./",
-    "test": "./node_modules/.bin/mocha"
+    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha ./test"
   }
 }
