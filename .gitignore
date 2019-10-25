@@ -2,5 +2,7 @@
 .serverless
 .DS_STORE
 .nyc_output
+coverage
+reports
 .vscode
 node_modules
