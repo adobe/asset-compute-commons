@@ -14,7 +14,7 @@
     "url": "https://git.corp.adobe.com/nui/asset-compute-commons.git"
   },
   "dependencies": {
-    "@nui/adobe-io-events-client": "^1.0.1",
+    "@nui/adobe-io-events-client": "^1.0.3",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "tmp": "^0.1.0"
