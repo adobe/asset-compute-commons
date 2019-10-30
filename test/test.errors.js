@@ -25,7 +25,8 @@ const {
     RenditionFormatUnsupportedError,
     SourceFormatUnsupportedError,
     SourceUnsupportedError,
-    SourceCorruptError
+    SourceCorruptError,
+    RenditionTooLarge
 } = require('../lib/errors');
 
 describe("errors", function() {
@@ -88,6 +89,18 @@ describe("errors", function() {
             assert.equal(e.name, "SourceCorruptError");
             assert.equal(e.message, "hi");
             assert.equal(e.reason, Reason.SourceCorrupt);
+        }
+    });
+
+    it("RenditionTooLarge", function() {
+        try {
+            throw new RenditionTooLarge("hi ho");
+        } catch (e) {
+            assert.ok(e instanceof ClientError);
+            assert.ok(e instanceof RenditionTooLarge);
+            assert.equal(e.name, "RenditionTooLarge");
+            assert.equal(e.message, "hi ho");
+            assert.equal(e.reason, Reason.RenditionTooLarge);
         }
     });
 });

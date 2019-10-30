@@ -19,8 +19,11 @@
 
 const AssetComputeEvents = require('./lib/events');
 const AssetComputeMetrics = require('./lib/metrics');
+const AssetComputeErrors = require('./lib/errors');
+
 
 module.exports = {
   AssetComputeEvents,
-  AssetComputeMetrics
+  AssetComputeMetrics,
+  ...AssetComputeErrors
 };
