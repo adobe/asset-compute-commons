@@ -33,6 +33,10 @@ const FAKE_PARAMS = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
     ingestionId: "ingestionId",
+    source: {
+        name: "AssetName.txt",
+        mimetype: "mimetype"
+    },
     auth: {
         orgId: "orgId",
         accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
@@ -43,6 +47,8 @@ const EXPECTED_METRICS = {
     test: "value",
     activationId: "activationId",
     ingestionId: "ingestionId",
+    sourceName: "AssetName.txt",
+    sourceMimetype: "mimetype",
     namespace: "namespace",
     package: "package",
     actionName: "action",
