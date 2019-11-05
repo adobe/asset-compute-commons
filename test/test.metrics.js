@@ -35,7 +35,8 @@ const FAKE_PARAMS = {
     ingestionId: "ingestionId",
     source: {
         name: "AssetName.txt",
-        mimetype: "mimetype"
+        mimetype: "mimetype",
+        size: "size"
     },
     auth: {
         orgId: "orgId",
@@ -49,6 +50,7 @@ const EXPECTED_METRICS = {
     ingestionId: "ingestionId",
     sourceName: "AssetName.txt",
     sourceMimetype: "mimetype",
+    sourceSize: "size",
     namespace: "namespace",
     package: "package",
     actionName: "action",
@@ -63,12 +65,13 @@ function gunzip(body) {
     return body;
 }
 
-function expectNewRelicInsightsEvent(metrics) {
+function expectNewRelicInsightsEvent(metrics, expectedMetrics) {
     return nock(NR_FAKE_BASE_URL)
         .filteringRequestBody(gunzip)
         .matchHeader("x-insert-key", NR_FAKE_API_KEY)
         .post(NR_FAKE_EVENTS_PATH, {
-            ...EXPECTED_METRICS,
+            // ...EXPECTED_METRICS,
+            ...expectedMetrics,
             ...metrics
         })
         .reply(200, {});
@@ -101,9 +104,77 @@ describe("AssetComputeMetrics", function() {
     it("sendMetrics", async function() {
         const nockSendEvent = expectNewRelicInsightsEvent({
             eventType: EVENT_TYPE
-        });
+        }, EXPECTED_METRICS);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+    });
+
+    it("sendMetrics - No Source Object", async function() {
+
+        const params = {
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            ingestionId: "ingestionId",
+            auth: {
+                orgId: "orgId",
+                accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+            }
+        };
+
+        const expectedMetrics = {
+            test: "value",
+            activationId: "activationId",
+            ingestionId: "ingestionId",
+            namespace: "namespace",
+            package: "package",
+            actionName: "action",
+            orgId: "orgId",
+            clientId: "clientId"
+        };
+
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE
+        }, expectedMetrics);
+
+        const metrics = new AssetComputeMetrics(params);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+    });
+
+    it("sendMetrics - Source Object empty", async function() {
+
+        const params = {
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            ingestionId: "ingestionId",
+            source: {},
+            auth: {
+                orgId: "orgId",
+                accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+            }
+        };
+
+        const expectedMetrics = {
+            test: "value",
+            activationId: "activationId",
+            ingestionId: "ingestionId",
+            sourceName: "",
+            sourceMimetype: "",
+            sourceSize: "",
+            namespace: "namespace",
+            package: "package",
+            actionName: "action",
+            orgId: "orgId",
+            clientId: "clientId"
+        };
+
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE
+        }, expectedMetrics);
+
+        const metrics = new AssetComputeMetrics(params);
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
     });
@@ -113,7 +184,7 @@ describe("AssetComputeMetrics", function() {
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "message",
             location: "location"
-        });
+        }, EXPECTED_METRICS);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.sendErrorMetrics("location", "message", { test: "value" });
@@ -125,7 +196,7 @@ describe("AssetComputeMetrics", function() {
             eventType: AssetComputeMetrics.CLIENT_ERROR_EVENT_TYPE,
             message: "message",
             reason: Reason.SourceCorrupt
-        });
+        }, EXPECTED_METRICS);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.sendClientErrorMetrics(Reason.SourceCorrupt, "message", { test: "value" });
@@ -137,7 +208,7 @@ describe("AssetComputeMetrics", function() {
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "message",
             location: "location"
-        });
+        }, EXPECTED_METRICS);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         metrics.handleError(new Error("message"), {
@@ -155,7 +226,7 @@ describe("AssetComputeMetrics", function() {
             message: "http message",
             location: "location",
             statusCode: 400
-        });
+        }, EXPECTED_METRICS);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         const httpError = new Error("http message");
@@ -174,7 +245,7 @@ describe("AssetComputeMetrics", function() {
             eventType: AssetComputeMetrics.CLIENT_ERROR_EVENT_TYPE,
             message: "message",
             reason: Reason.SourceFormatUnsupported
-        });
+        }, EXPECTED_METRICS);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         const httpError = new SourceFormatUnsupportedError("message");
@@ -192,7 +263,7 @@ describe("AssetComputeMetrics", function() {
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "message",
             location: "location"
-        });
+        }, EXPECTED_METRICS);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         metrics.handleError(new GenericError("message", "location"), {
