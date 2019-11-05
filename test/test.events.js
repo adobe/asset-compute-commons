@@ -54,6 +54,26 @@ describe("AssetComputeEvents", function() {
         assert.equal(events.getProviderId(), "asset_compute_orgId_clientId");
     });
 
+    it("getProviderId - Invalid jwt", function() {
+        const params = {
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            ingestionId: "ingestionId",
+            auth: {
+                orgId: "orgId",
+                accessToken: "accessToken"
+            }
+        };
+
+        assert.throws(
+            function () {
+                new AssetComputeEvents(params);
+            },
+            Error,
+            "Error: invalid accessToken"
+        );
+    });
+
     it("sendEvent - file system", async function() {
         const fsEventDir = tmp.dirSync().name;
         process.env.NUI_UNIT_TEST_OUT = fsEventDir;
