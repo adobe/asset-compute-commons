@@ -28,9 +28,12 @@ const {redactCredentials, redact} = require('./lib/filters');
 
 
 module.exports = {
+  // shared <<static>> functions
   actionName,
   redactCredentials,
   redact,
+
+  // classes
   AssetComputeEvents,
   AssetComputeMetrics,
   ...AssetComputeErrors
