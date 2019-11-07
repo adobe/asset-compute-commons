@@ -17,12 +17,20 @@
 
 'use strict';
 
+// classes
 const AssetComputeEvents = require('./lib/events');
 const AssetComputeMetrics = require('./lib/metrics');
 const AssetComputeErrors = require('./lib/errors');
 
+// shared functions
+const { actionName } = require('./lib/actions');
+const {redactCredentials, redact} = require('./lib/filters');
+
 
 module.exports = {
+  actionName,
+  redactCredentials,
+  redact,
   AssetComputeEvents,
   AssetComputeMetrics,
   ...AssetComputeErrors
