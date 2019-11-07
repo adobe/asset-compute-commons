@@ -37,15 +37,15 @@ describe("actions.js - Custom fields removal", function() {
     });
 
     it('returns value set as env variable', function() {
-        process.env.__OW_ACTION_NAME = 'org/namespace/action';
+        process.env.__OW_ACTION_NAME = 'namespace/package/action';
         let name = actionName();
         assert.equal(name, "action");
 
-        process.env.__OW_ACTION_NAME = 'org/namespace/  ';
+        process.env.__OW_ACTION_NAME = 'namespace/package/  ';
         name = actionName();
         assert.equal(name, "  ");
 
-        process.env.__OW_ACTION_NAME = 'org/namespace/\n';
+        process.env.__OW_ACTION_NAME = 'namespace/package/\n';
         name = actionName();
         assert.equal(name, "\n");
 
