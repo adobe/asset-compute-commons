@@ -60,7 +60,7 @@ const EXPECTED_METRICS = {
 function gunzip(body) {
     body = Buffer.from(body, 'hex');
     body = zlib.gunzipSync(body).toString();
-    // console.log("New Relic received:", body);
+    console.log("New Relic received:", body);
     return body;
 }
 
@@ -122,7 +122,8 @@ describe("AssetComputeMetrics", function() {
             }
         };
 
-        const expectedMetrics = {
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
             test: "value",
             activationId: "activationId",
             ingestionId: "ingestionId",
@@ -131,11 +132,7 @@ describe("AssetComputeMetrics", function() {
             actionName: "action",
             orgId: "orgId",
             clientId: "clientId"
-        };
-
-        const nockSendEvent = expectNewRelicInsightsEvent({
-            eventType: EVENT_TYPE
-        }, expectedMetrics);
+        }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
@@ -155,7 +152,8 @@ describe("AssetComputeMetrics", function() {
             }
         };
 
-        const expectedMetrics = {
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
             test: "value",
             activationId: "activationId",
             ingestionId: "ingestionId",
@@ -164,11 +162,7 @@ describe("AssetComputeMetrics", function() {
             actionName: "action",
             orgId: "orgId",
             clientId: "clientId"
-        };
-
-        const nockSendEvent = expectNewRelicInsightsEvent({
-            eventType: EVENT_TYPE
-        }, expectedMetrics);
+        }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
@@ -377,10 +371,12 @@ describe("AssetComputeMetrics", function() {
                     activationId: "activationId",
                     ingestionId: "ingestionId",
                     orgId: "orgId",
-                    package: "package"
+                    package: "package",
+                    sourceName: "AssetName.txt",
+                    sourceMimetype: "mimetype",
+                    sourceSize: "size"
                     // no clientId because of parsing error token
                 }, 200, false);
-
 
                 const metrics = new AssetComputeMetrics(FAKE_PARAMS);
                 await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
