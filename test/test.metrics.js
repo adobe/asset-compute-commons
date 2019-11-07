@@ -33,6 +33,11 @@ const FAKE_PARAMS = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
     ingestionId: "ingestionId",
+    source: {
+        name: "AssetName.txt",
+        mimetype: "mimetype",
+        size: "size"
+    },
     auth: {
         orgId: "orgId",
         accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
@@ -46,13 +51,16 @@ const EXPECTED_METRICS = {
     ingestionId: "ingestionId",
     orgId: "orgId",
     clientId: "clientId",
-    package: "package"
+    package: "package",
+    sourceName: "AssetName.txt",
+    sourceMimetype: "mimetype",
+    sourceSize: "size",
 };
 
 function gunzip(body) {
     body = Buffer.from(body, 'hex');
     body = zlib.gunzipSync(body).toString();
-    // console.log("New Relic received:", body);
+    console.log("New Relic received:", body);
     return body;
 }
 
@@ -98,6 +106,65 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+    });
+
+    it("sendMetrics - No Source Object", async function() {
+
+        const params = {
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            ingestionId: "ingestionId",
+            auth: {
+                orgId: "orgId",
+                accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+            }
+        };
+
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value",
+            activationId: "activationId",
+            ingestionId: "ingestionId",
+            namespace: "namespace",
+            package: "package",
+            actionName: "action",
+            orgId: "orgId",
+            clientId: "clientId"
+        }, 200, false);
+
+        const metrics = new AssetComputeMetrics(params);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+    });
+
+    it("sendMetrics - Source Object empty", async function() {
+
+        const params = {
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            ingestionId: "ingestionId",
+            source: {},
+            auth: {
+                orgId: "orgId",
+                accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+            }
+        };
+
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value",
+            activationId: "activationId",
+            ingestionId: "ingestionId",
+            namespace: "namespace",
+            package: "package",
+            actionName: "action",
+            orgId: "orgId",
+            clientId: "clientId"
+        }, 200, false);
+
+        const metrics = new AssetComputeMetrics(params);
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
     });
@@ -304,10 +371,12 @@ describe("AssetComputeMetrics", function() {
                     activationId: "activationId",
                     ingestionId: "ingestionId",
                     orgId: "orgId",
-                    package: "package"
+                    package: "package",
+                    sourceName: "AssetName.txt",
+                    sourceMimetype: "mimetype",
+                    sourceSize: "size"
                     // no clientId because of parsing error token
                 }, 200, false);
-
 
                 const metrics = new AssetComputeMetrics(FAKE_PARAMS);
                 await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
