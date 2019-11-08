@@ -33,6 +33,6 @@
   },
   "scripts": {
     "pretest": "eslint ./",
-    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha ./test"
+    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha ./test/*"
   }
 }

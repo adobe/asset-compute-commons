@@ -27,7 +27,7 @@ const {
     SourceUnsupportedError,
     SourceCorruptError,
     RenditionTooLarge
-} = require('../lib/errors');
+} = require('../../lib/errors');
 
 describe("errors", function() {
 

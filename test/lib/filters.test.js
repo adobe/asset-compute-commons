@@ -18,7 +18,7 @@
 'use strict';
 
 const assert = require('assert');
-const {redactCredentials, redact} = require('../lib/filters');
+const {redactCredentials, redact} = require('../../lib/filters');
 
 describe("filters.js - Credentials redaction", function() {
     it('redacts fields', function() {
