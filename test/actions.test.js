@@ -18,36 +18,38 @@
 'use strict';
 
 const assert = require('assert');
-const { actionName } = require('../lib/actions');
+const { OpenwhiskActionName } = require('../lib/actions');
 
 describe("actions.js - Custom fields removal", function() {
     it('returns empty string (0 length) when nothing is set', function() {
-        const name = actionName();
-        assert.equal(name, "");
-        assert.equal(name.length, 0);
+        const openwhiskDetails = new OpenwhiskActionName();
+        assert.equal(openwhiskDetails.name, "");
     });
 
     it('return NUI TEST ENV value in test env)', function() {
-        process.env.NUI_UNIT_TEST_MODE = true;
-
-        const name = actionName();
-        assert.equal(name, "test_action");
-
-        delete process.env.NUI_UNIT_TEST_MODE;
+        const openwhiskDetails = new OpenwhiskActionName("test_action");
+        assert.equal(openwhiskDetails.name, "test_action");
     });
 
     it('returns value set as env variable', function() {
         process.env.__OW_ACTION_NAME = 'namespace/package/action';
-        let name = actionName();
-        assert.equal(name, "action");
+        let openwhiskDetails = new OpenwhiskActionName();
+        assert.equal(openwhiskDetails.name, "action");
+        assert.equal(openwhiskDetails.package, "package");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        assert.equal(openwhiskDetails.fullname, "namespace/package/action");
 
         process.env.__OW_ACTION_NAME = 'namespace/package/  ';
-        name = actionName();
-        assert.equal(name, "  ");
-
+        openwhiskDetails = new OpenwhiskActionName();
+        assert.equal(openwhiskDetails.name, "  ");
+        assert.equal(openwhiskDetails.package, "package");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        
         process.env.__OW_ACTION_NAME = 'namespace/package/\n';
-        name = actionName();
-        assert.equal(name, "\n");
+        openwhiskDetails = new OpenwhiskActionName();
+        assert.equal(openwhiskDetails.name, "\n");
+        assert.equal(openwhiskDetails.package, "package");
+        assert.equal(openwhiskDetails.namespace, "namespace");
 
         delete process.env.__OW_ACTION_NAME;
     });
