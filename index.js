@@ -23,15 +23,12 @@ const AssetComputeMetrics = require('./lib/metrics');
 const AssetComputeErrors = require('./lib/errors');
 
 // shared functions
-const { actionName } = require('./lib/actions');
-const {redactCredentials, redact} = require('./lib/filters');
+const { AssetComputeFilters } = require('./lib/filters');
 
 
 module.exports = {
   // shared <<static>> functions
-  actionName,
-  redactCredentials,
-  redact,
+  AssetComputeFilters,
 
   // classes
   AssetComputeEvents,
