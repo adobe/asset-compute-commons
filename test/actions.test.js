@@ -31,7 +31,7 @@ describe("actions.js - Custom fields removal", function() {
         assert.equal(openwhiskDetails.name, "test_action");
     });
 
-    it('returns value set as env variable', function() {
+    it('returns value set as env variable (3 parts)', function() {
         process.env.__OW_ACTION_NAME = 'namespace/package/action';
         let openwhiskDetails = new OpenwhiskActionName();
         assert.equal(openwhiskDetails.name, "action");
@@ -49,6 +49,29 @@ describe("actions.js - Custom fields removal", function() {
         openwhiskDetails = new OpenwhiskActionName();
         assert.equal(openwhiskDetails.name, "\n");
         assert.equal(openwhiskDetails.package, "package");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+
+        delete process.env.__OW_ACTION_NAME;
+    });
+
+    it('returns value set as env variable (2 parts)', function() {
+        process.env.__OW_ACTION_NAME = 'namespace/action';
+        let openwhiskDetails = new OpenwhiskActionName();
+        assert.equal(openwhiskDetails.name, "action");
+        assert.equal(openwhiskDetails.package, "");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        assert.equal(openwhiskDetails.fullname, "namespace/action");
+
+        process.env.__OW_ACTION_NAME = 'namespace/  ';
+        openwhiskDetails = new OpenwhiskActionName();
+        assert.equal(openwhiskDetails.name, "  ");
+        assert.equal(openwhiskDetails.package, "");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        
+        process.env.__OW_ACTION_NAME = 'namespace/\n';
+        openwhiskDetails = new OpenwhiskActionName();
+        assert.equal(openwhiskDetails.name, "\n");
+        assert.equal(openwhiskDetails.package, "");
         assert.equal(openwhiskDetails.namespace, "namespace");
 
         delete process.env.__OW_ACTION_NAME;
