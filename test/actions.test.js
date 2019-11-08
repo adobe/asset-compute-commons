@@ -51,6 +51,13 @@ describe("actions.js - Custom fields removal", function() {
         assert.equal(openwhiskDetails.package, "package");
         assert.equal(openwhiskDetails.namespace, "namespace");
 
+        process.env.__OW_ACTION_NAME = 'namespace/package/action';
+        openwhiskDetails = new OpenwhiskActionName("test_action");
+        assert.equal(openwhiskDetails.name, "action");
+        assert.equal(openwhiskDetails.package, "package");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        assert.equal(openwhiskDetails.fullname, "namespace/package/action");
+
         delete process.env.__OW_ACTION_NAME;
     });
 
