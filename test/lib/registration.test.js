@@ -238,6 +238,25 @@ describe('registration.js - finds successful registration', function() {
         }
     });
 
+    it('throws if auth token is not formed properly', async function() {
+        try{
+            const params = {};
+            params.clientId = TEST_CLIENT_ID;
+            params.auth = {};
+            params.orgId = TEST_ORG;
+            params.auth.accessToken = "wrongly formed token";
+
+            const registration = new AssetComputeRegistration(params);
+            await registration.findJournal();
+
+            assert.fail("Registration check should not have worked");
+        } catch(err){
+            console.log(err);
+            assert.ok(err instanceof ClientError);
+            assert.ok(err.innerError.message.includes("Cannot read property 'client_id' of null"));
+        }
+    });
+
     it('throws if auth is missing', async function() {
         try{
             const params = {};
