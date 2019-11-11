@@ -19,12 +19,8 @@
 
 const assert = require('assert');
 const nock = require('nock');
-const sinon = require('sinon');
-const rewire = require('rewire');
 
-const rewiredRegistration = rewire('../lib/registration');
-const { checkRegistration, getCache, flushCache } = require('../lib/registration');
-const { ClientError } = require('@nui/asset-compute-commons');
+const { AssetComputeRegistration } = require('../../lib/registration');
 
 const TEST_ORG = "test@AdobeOrg";
 const TEST_CONSUMER_ID = "105979";
@@ -109,22 +105,23 @@ describe('registration.js - finds successful registration', function() {
         ]);
     });
 
-    it('finds an integration', async function() {
-        const cachelessCheckRegistration = rewiredRegistration.__get__('checkRegistrationUsingHttp');
+    it.only('finds an integration', async function() {
         try{
             const params = {};
-            params.orgId = TEST_ORG;
             params.clientId = TEST_CLIENT_ID;
             params.auth = {};
+            params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
 
-            await cachelessCheckRegistration(params);
+            const registration = new AssetComputeRegistration(params);
+            await registration.checkJournal();
         } catch(err){
             assert.fail("Registration check should have worked");
         }
     });
 });
 
+/*
 describe('registration.js - finds successful registration (no cache)', function() {
     afterEach(() => {
         delete process.env.NUI_BYPASS_CACHE;
@@ -451,4 +448,4 @@ describe('registration.js - handles missing registrations (no cache)', function(
             assert.equal(err.innerError.message, `Journal not found for orgId ${TEST_ORG} and clientId ${TEST_CLIENT_ID}`);
         }
     });
-});
+});*/
