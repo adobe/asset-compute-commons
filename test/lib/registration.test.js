@@ -506,4 +506,93 @@ describe('registration.js - handles missing registrations (no cache)', function(
             assert.equal(err.message, `Journal not found for orgId ${TEST_ORG} and clientId ${TEST_CLIENT_ID}`);
         }
     });
+
+    it('handles unknown errors in findJournal gracefully', async function() {
+        process.env.NUI_UNIT_TEST_MODE = true;
+
+        nock('https://api.adobe.io').get('/console/organizations')
+            .reply(200,
+                [{
+                    "id": TEST_CONSUMER_ID,
+                    "code": TEST_ORG,
+                    "name": "Project Nui",
+                    "description": null,
+                    "type": "entp"
+                }]
+            );
+
+        nock('https://api.adobe.io').get('/console/organizations/105979/integrations')
+            .reply(200,
+                [{
+                    "id": TEST_CONSUMER_ID,
+                    "code": TEST_ORG,
+                    "name": "Project Nui",
+                    "description": null,
+                    "type": "entp"
+                }]
+            );
+
+        nock('https://api.adobe.io').get('/console/organizations/105979/integrations?size=50&page=0')
+            .reply(200,
+                { content: [{
+                        apiKey: TEST_CLIENT_ID,
+                        id: TEST_CONSUMER_ID,
+                        status: "status",
+                        name: "Project Nui",
+                        description: null
+                    }]
+                }
+            );
+        
+        nock('https://api.adobe.io').get(`/events/organizations/${TEST_CONSUMER_ID}/integrations/${TEST_CONSUMER_ID}/registrations`)
+        .reply(200, [
+            {
+                "id": 33841,
+                "client_id": TEST_CLIENT_ID,
+                "name": "Asset Compute Journal",
+                "description": `Asset Compute Journal - ${TEST_CLIENT_ID}`,
+                "parent_client_id": TEST_CLIENT_ID,
+                "webhook_url": null,
+                "status": "VERIFIED",
+                "type": "APP",
+                "integration_status": "ENABLED",
+                "events_of_interest": [
+                    {
+                        "event_code": "asset_compute",
+                        "provider": TEST_PROVIDER_ID,
+                        "eventWithProvider": "adobe_io_event-asset_compute-759"
+                    }
+                ],
+                "registration_id": "ddd75855-8ac6-4e6b-b7f6-8714247c2ff9",
+                "delivery_type": "JOURNAL",
+                "events_url": TEST_JOURNAL_URL,
+                "created_date": "2018-12-14T01:52:20.000Z",
+                "updated_date": "2018-12-14T01:52:20.000Z",
+                "runtime_action": ""
+            }
+        ]);
+
+        try{
+            const params = {};
+            params.clientId = TEST_CLIENT_ID;
+            params.auth = {};
+            params.auth.orgId = TEST_ORG;
+            params.auth.accessToken = TEST_TOKEN;
+
+            const journalFinder = function(consumer, providerId) {
+                throw new Error("Unknown custom error (from unit test)");
+            };
+
+            const registration = new AssetComputeRegistration(params);
+            await registration.findJournal(journalFinder);
+
+            assert.fail("Registration check should not have worked");
+        } catch(err){
+            console.log(err);
+            assert.ok(err instanceof GenericError);
+            assert.ok(err.innerError.message, "Unknown custom error (from unit test)");
+        }
+
+        delete process.env.NUI_UNIT_TEST_MODE;
+    });
 });
