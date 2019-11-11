@@ -36,11 +36,11 @@ const TEST_PROVIDER_ID = `asset_compute_${TEST_ORG}_${TEST_CLIENT_ID}`;
 const TEST_JOURNAL_URL = `https://api.adobe.io/events/organizations/${TEST_CONSUMER_ID}/integrations/${TEST_APP_ID}/aaa12345-8ac6-4e6b-b7f6-8714247c2ff9`;
 
 describe('registration.js - finds successful registration', function() {
-    afterEach(() => {
+    afterEach(function() {
         nock.cleanAll();
         delete process.env.NUI_UNIT_TEST_MODE;
     });
-    beforeEach(() => {
+    beforeEach(function() {
         process.env.NUI_UNIT_TEST_MODE = true;
 
         nock('https://api.adobe.io').get('/console/organizations')
@@ -279,10 +279,10 @@ describe('registration.js - finds successful registration', function() {
 
 
 describe('registration.js - handles missing registrations (no cache)', function() {
-    beforeEach(() => {
+    beforeEach(function() {
         delete process.env.NUI_UNIT_TEST_MODE;
     })
-    afterEach(() => {
+    afterEach(function() {
         process.env.NUI_UNIT_TEST_MODE = true;
         nock.cleanAll();
     });
@@ -492,7 +492,7 @@ describe('registration.js - handles missing registrations (no cache)', function(
             params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
 
-            const failingJournalFinder = function(consumer, providerId) {
+            const failingJournalFinder = function(consumer) {
                 console.log("Custom journal finder")
                 return consumer.delivery_type === "JOURNAL" &&
                     Array.isArray(consumer.events_of_interest) &&
@@ -579,7 +579,7 @@ describe('registration.js - handles missing registrations (no cache)', function(
             params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
 
-            const journalFinder = function(consumer, providerId) {
+            const journalFinder = function() {
                 throw new Error("Unknown custom error (from unit test)");
             };
 
