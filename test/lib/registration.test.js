@@ -21,7 +21,7 @@ const assert = require('assert');
 const nock = require('nock');
 
 const { AssetComputeRegistration } = require('../../lib/registration');
-const { ClientError } = require('../../lib/errors');
+const { ClientError, GenericError } = require('../../lib/errors');
 
 const TEST_ORG = "test@AdobeOrg";
 const TEST_CONSUMER_ID = "105979";
@@ -310,7 +310,7 @@ describe('registration.js - handles missing registrations (no cache)', function(
         }
     });
 
-    /*it.only('handles not finding the console', async function() {
+    it('handles not finding the console', async function() {
         nock('https://api.adobe.io').get('/console/organizations')
             .reply(200);
 
@@ -326,10 +326,10 @@ describe('registration.js - handles missing registrations (no cache)', function(
             assert.fail("Registration check should not have worked");
         } catch(err){
             console.log(err);
-            assert.ok(err instanceof FetchError);
-            assert.ok(err.message.includes("invalid json response body"));
+            assert.ok(err instanceof GenericError);
+            assert.ok(err.innerError.message.includes("invalid json response body"));
         }
-    });*/
+    });
 
     it('handles falsy callbacks', async function() {
         nock('https://api.adobe.io').get('/console/organizations')
