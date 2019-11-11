@@ -14,7 +14,8 @@
     "url": "https://git.corp.adobe.com/nui/asset-compute-commons.git"
   },
   "dependencies": {
-    "@nui/adobe-io-events-client": "^1.0.3",
+    "@nui/adobe-io-console-client": "0.0.3",
+    "@nui/adobe-io-events-client": "^1.0.5",
     "jsonwebtoken": "^8.5.1",
     "node-fetch": "^2.6.0",
     "tmp": "^0.1.0"
@@ -29,10 +30,12 @@
     "mocha": "^6.2.1",
     "nock": "^11.4.0",
     "nyc": "^14.1.1",
-    "stryker": "^0.35.1"
+    "stryker": "^0.35.1",
+    "rewire": "^4.0.1",
+    "sinon": "^7.5.0"
   },
   "scripts": {
     "pretest": "eslint ./",
-    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha ./test/*"
+    "test": "nyc --reporter=html --reporter=text mocha ./test/*"
   }
 }
