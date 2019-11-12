@@ -17,12 +17,14 @@
 
 'use strict';
 
+const OpenwhiskActionName = require('./lib/actions');
 const AssetComputeEvents = require('./lib/events');
 const AssetComputeMetrics = require('./lib/metrics');
 const AssetComputeErrors = require('./lib/errors');
 
 
 module.exports = {
+  OpenwhiskActionName,
   AssetComputeEvents,
   AssetComputeMetrics,
   ...AssetComputeErrors
