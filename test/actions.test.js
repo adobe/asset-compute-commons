@@ -110,6 +110,7 @@ describe("actions.js - Custom fields removal", function() {
     });
 
     it('returns value when name has 1 part', function() {
+        const openwhiskDetails = new OpenwhiskActionName("this-is-the-name");
         assert.equal(openwhiskDetails.name, "this-is-the-name");
         assert.equal(openwhiskDetails.package, "");
         assert.equal(openwhiskDetails.namespace, "");
