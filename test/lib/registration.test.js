@@ -21,7 +21,7 @@ const assert = require('assert');
 const nock = require('nock');
 
 const { AssetComputeRegistration } = require('../../lib/registration');
-const { ClientError, GenericError } = require('../../lib/errors');
+const { ClientError, GenericError, ArgumentError } = require('../../lib/errors');
 
 const TEST_ORG = "test@AdobeOrg";
 const TEST_CONSUMER_ID = "105979";
@@ -107,18 +107,15 @@ describe('registration.js - finds successful registration', function() {
     });
 
     it('finds an integration', async function() {
-        try{
-            const params = {};
-            params.clientId = TEST_CLIENT_ID;
-            params.auth = {};
-            params.auth.orgId = TEST_ORG;
-            params.auth.accessToken = TEST_TOKEN;
+        const params = {};
+        params.clientId = TEST_CLIENT_ID;
+        params.auth = {};
+        params.auth.orgId = TEST_ORG;
+        params.auth.accessToken = TEST_TOKEN;
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
-        } catch(err){
-            assert.fail("Registration check should have worked");
-        }
+        const registration = new AssetComputeRegistration(params);
+        await registration.getJournal();
+
     });
 
     it('finds an integration when given custom journal finder function', async function() {
@@ -137,7 +134,7 @@ describe('registration.js - finds successful registration', function() {
             };
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal(journalFinder);
+            await registration.getJournal(journalFinder);
         } catch(err){
             assert.fail("Registration check should have worked");
         }
@@ -152,7 +149,7 @@ describe('registration.js - finds successful registration', function() {
             params.auth.accessToken = TEST_TOKEN;
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
+            await registration.getJournal();
         } catch(err){
             console.log(err);
             assert.fail("Registration check should have worked");
@@ -175,7 +172,7 @@ describe('registration.js - finds successful registration', function() {
                 integrationName:"Project Nui"
             };
 
-            await registration.findJournal();
+            await registration.getJournal();
         } catch(err){
             console.log(err);
             assert.fail("Registration check should have worked");
@@ -193,7 +190,7 @@ describe('registration.js - finds successful registration', function() {
             const registration = new AssetComputeRegistration(params);
 
             await registration.getIntegrationDetails();
-            await registration.findJournal();
+            await registration.getJournal();
         } catch(err){
             console.log(err);
             assert.fail("Registration check should have worked");
@@ -212,7 +209,7 @@ describe('registration.js - finds successful registration', function() {
 
             const integration = await registration.getIntegrationDetails();
             registration.integration = integration;
-            await registration.findJournal();
+            await registration.getJournal();
         } catch(err){
             console.log(err);
             assert.fail("Registration check should have worked");
@@ -228,12 +225,12 @@ describe('registration.js - finds successful registration', function() {
             //params.auth.accessToken = TEST_TOKEN;
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
+            await registration.getJournal();
 
             assert.fail("Registration check should not have worked");
         } catch(err){
             console.log(err);
-            assert.ok(err instanceof ClientError);
+            assert.ok(err instanceof ArgumentError);
             assert.equal(err.message, "no valid `accessToken` and `orgId` in request params");
         }
     });
@@ -247,7 +244,7 @@ describe('registration.js - finds successful registration', function() {
             params.auth.accessToken = "wrongly formed token";
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
+            await registration.getJournal();
 
             assert.fail("Registration check should not have worked");
         } catch(err){
@@ -266,12 +263,12 @@ describe('registration.js - finds successful registration', function() {
             //params.auth.accessToken = TEST_TOKEN;
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
+            await registration.getJournal();
 
             assert.fail("Registration check should not have worked");
         } catch(err){
             console.log(err);
-            assert.ok(err instanceof ClientError);
+            assert.ok(err instanceof ArgumentError);
             assert.equal(err.message, "no valid `accessToken` and `orgId` in request params");
         }
     });
@@ -285,12 +282,12 @@ describe('registration.js - finds successful registration', function() {
             params.auth.accessToken = TEST_TOKEN;
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
+            await registration.getJournal();
 
             assert.fail("Registration check should not have worked");
         } catch(err){
             console.log(err);
-            assert.ok(err instanceof ClientError);
+            assert.ok(err instanceof ArgumentError);
             assert.equal(err.message, "no valid `accessToken` and `orgId` in request params");
         }
     });
@@ -306,50 +303,6 @@ describe('registration.js - handles missing registrations (no cache)', function(
         nock.cleanAll();
     });
 
-    it('handles not finding the integration (wrong response format)', async function() {
-        nock('https://api.adobe.io').get('/console/organizations')
-            .reply(200,
-                []
-            );
-
-        try{
-            const params = {};
-            params.clientId = TEST_CLIENT_ID;
-            params.auth = {};
-            params.auth.orgId = TEST_ORG;
-            params.auth.accessToken = TEST_TOKEN;
-
-            const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
-            assert.fail("Registration check should not have worked");
-        } catch(err){
-            console.log(err);
-            assert.ok(err instanceof ClientError);
-            assert.equal(err.message, "IMS org not found or user is not a member of it: test@AdobeOrg");
-        }
-    });
-
-    it('handles not finding the console', async function() {
-        nock('https://api.adobe.io').get('/console/organizations')
-            .reply(200);
-
-        try{
-            const params = {};
-            params.clientId = TEST_CLIENT_ID;
-            params.auth = {};
-            params.auth.orgId = TEST_ORG;
-            params.auth.accessToken = TEST_TOKEN;
-
-            const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
-            assert.fail("Registration check should not have worked");
-        } catch(err){
-            console.log(err);
-            assert.ok(err instanceof GenericError);
-            assert.ok(err.innerError.message.includes("invalid json response body"));
-        }
-    });
-
     it('handles falsy callbacks', async function() {
         nock('https://api.adobe.io').get('/console/organizations')
             .reply(200, {});
@@ -362,12 +315,12 @@ describe('registration.js - handles missing registrations (no cache)', function(
             params.auth.accessToken = TEST_TOKEN;
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal(42);
+            await registration.getJournal(42);
             assert.fail("Registration check should not have worked");
         } catch(err){
             console.log(err);
-            assert.ok(err instanceof ClientError);
-            assert.ok(err.message.includes("findJournal parameter is not a function"));
+            assert.ok(err instanceof ArgumentError);
+            assert.ok(err.message.includes("is not a function"));
         }
     });
 
@@ -383,20 +336,15 @@ describe('registration.js - handles missing registrations (no cache)', function(
                 }]
             );
 
-        try{
-            const params = {};
-            params.clientId = TEST_CLIENT_ID;
-            params.auth = {};
-            params.auth.orgId = TEST_ORG;
-            params.auth.accessToken = TEST_TOKEN;
+        const params = {};
+        params.clientId = TEST_CLIENT_ID;
+        params.auth = {};
+        params.auth.orgId = TEST_ORG;
+        params.auth.accessToken = TEST_TOKEN;
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
-            assert.fail("Registration check should not have worked");
-        } catch(err){
-            assert.ok(err instanceof ClientError);
-            assert.equal(err.message, "IMS org not found or user is not a member of it: test@AdobeOrg");
-        }
+        const registration = new AssetComputeRegistration(params);
+        const res = await registration.getJournal();
+        assert.equal(res, null);
     });
 
     it('handles not finding an integration (request does not succeed)', async function() {
@@ -423,22 +371,19 @@ describe('registration.js - handles missing registrations (no cache)', function(
                 }
             );
             
-        try {
-            const params = {};
-            params.clientId = TEST_CLIENT_ID;
-            params.auth = {};
-            params.auth.orgId = TEST_ORG;
-            params.auth.accessToken = TEST_TOKEN;
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.findJournal();
-        } catch(err) {
-            assert.ok(err instanceof ClientError);
-            assert.equal(err.message, "Integration not found for client id from access token: test-client");
+        const params = {};
+        params.clientId = TEST_CLIENT_ID;
+        params.auth = {};
+        params.auth.orgId = TEST_ORG;
+        params.auth.accessToken = TEST_TOKEN;
 
-            // Note: Seeing nock complaining about failing requests is normal here. 
-            // That's actually that error handling we are testing for
-        }
+        const registration = new AssetComputeRegistration(params);
+        const res = await registration.getJournal();
+        assert.equal(res, null);
+
+        // Note: Seeing nock complaining about failing requests is normal here. 
+        // That's actually that error handling we are testing for
     });
 
     it('handles not finding a journal ', async function() {
@@ -504,29 +449,26 @@ describe('registration.js - handles missing registrations (no cache)', function(
             }
         ]);
 
-        try {
-            const params = {};
-            params.clientId = TEST_CLIENT_ID;
-            params.auth = {};
-            params.auth.orgId = TEST_ORG;
-            params.auth.accessToken = TEST_TOKEN;
+        const params = {};
+        params.clientId = TEST_CLIENT_ID;
+        params.auth = {};
+        params.auth.orgId = TEST_ORG;
+        params.auth.accessToken = TEST_TOKEN;
 
-            const failingJournalFinder = function(consumer) {
-                console.log("Custom journal finder")
-                return consumer.delivery_type === "JOURNAL" &&
-                    Array.isArray(consumer.events_of_interest) &&
-                    consumer.events_of_interest.some(e => e.provider === 'unknown-provider');
-            };
+        const failingJournalFinder = function(consumer) {
+            console.log("Custom journal finder")
+            return consumer.delivery_type === "JOURNAL" &&
+                Array.isArray(consumer.events_of_interest) &&
+                consumer.events_of_interest.some(e => e.provider === 'unknown-provider');
+        };
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.findJournal(failingJournalFinder);
-        } catch(err) {
-            assert.ok(err instanceof ClientError);
-            assert.equal(err.message, `Journal not found for orgId ${TEST_ORG} and clientId ${TEST_CLIENT_ID}`);
-        }
+        const registration = new AssetComputeRegistration(params);
+        const res = await registration.getJournal(failingJournalFinder);
+        assert.equal(res, null);
+
     });
 
-    it('handles unknown errors in findJournal gracefully', async function() {
+    it('handles unknown errors in getJournal gracefully', async function() {
         process.env.NUI_UNIT_TEST_MODE = true;
 
         nock('https://api.adobe.io').get('/console/organizations')
@@ -603,13 +545,12 @@ describe('registration.js - handles missing registrations (no cache)', function(
             };
 
             const registration = new AssetComputeRegistration(params);
-            await registration.findJournal(journalFinder);
+            await registration.getJournal(journalFinder);
 
             assert.fail("Registration check should not have worked");
         } catch(err){
             console.log(err);
-            assert.ok(err instanceof GenericError);
-            assert.ok(err.innerError.message, "Unknown custom error (from unit test)");
+            assert.ok(err.message, "Unknown custom error (from unit test)");
         }
 
         delete process.env.NUI_UNIT_TEST_MODE;
