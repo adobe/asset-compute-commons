@@ -21,7 +21,7 @@ const assert = require('assert');
 const nock = require('nock');
 
 const { AssetComputeRegistration } = require('../../lib/registration');
-const { ClientError, GenericError, ArgumentError } = require('../../lib/errors');
+const { ClientError, ArgumentError } = require('../../lib/errors');
 
 const TEST_ORG = "test@AdobeOrg";
 const TEST_CONSUMER_ID = "105979";
