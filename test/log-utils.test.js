@@ -18,6 +18,7 @@
 'use strict';
 
 const assert = require('assert');
+const sinon = require('sinon');
 const {AssetComputeLogUtils} = require('../lib/log-utils');
 
 describe("filters.js - Credentials redaction", function() {
@@ -217,5 +218,14 @@ describe("filters.js - Custom fields removal", function() {
         assert.equal(redactedObject.testObj.threeField, undefined);
         assert.equal(redactedObject.testObj.noRedact, "no-redact");
         assert.equal(redactedObject.noRedact, "no-redact-parent");
+    });
+
+    it('logs something', function(){
+        const consoleSpy = sinon.spy(console, 'log');
+
+        AssetComputeLogUtils.log({test: "test"}, "my message");
+        AssetComputeLogUtils.log({test: "test"});
+
+        assert.ok(consoleSpy.calledTwice);
     });
 });
