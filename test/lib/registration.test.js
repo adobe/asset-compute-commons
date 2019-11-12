@@ -192,7 +192,7 @@ describe('registration.js - finds successful registration', function() {
 
             const registration = new AssetComputeRegistration(params);
 
-            await registration.findIntegrationDetails();
+            await registration.getIntegrationDetails();
             await registration.findJournal();
         } catch(err){
             console.log(err);
@@ -210,7 +210,7 @@ describe('registration.js - finds successful registration', function() {
 
             const registration = new AssetComputeRegistration(params);
 
-            const integration = await registration.findIntegrationDetails();
+            const integration = await registration.getIntegrationDetails();
             registration.integration = integration;
             await registration.findJournal();
         } catch(err){
