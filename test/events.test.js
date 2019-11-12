@@ -22,7 +22,7 @@ const tmp = require('tmp');
 const fs = require('fs');
 const nock = require('nock');
 const assert = require('assert');
-const AssetComputeEvents = require('../../lib/events');
+const AssetComputeEvents = require('../lib/events');
 
 const NR_FAKE_BASE_URL = "http://newrelic.com";
 const NR_FAKE_EVENTS_PATH = "/events";

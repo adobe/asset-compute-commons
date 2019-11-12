@@ -18,7 +18,7 @@
 'use strict';
 
 const assert = require('assert');
-const { actionName } = require('../../lib/actions');
+const { actionName } = require('../lib/actions');
 
 describe("actions.js - Custom fields removal", function() {
     it('returns empty string (0 length) when nothing is set', function() {
