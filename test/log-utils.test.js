@@ -18,7 +18,7 @@
 'use strict';
 
 const assert = require('assert');
-const {AssetComputeFilters} = require('../lib/filters');
+const {AssetComputeLogUtils} = require('../lib/log-utils');
 
 describe("filters.js - Credentials redaction", function() {
     it('redacts fields', function() {
@@ -28,7 +28,7 @@ describe("filters.js - Credentials redaction", function() {
         testObj.uploadToken = 'uploadToken';
         testObj.noRedact = 'no-redact';
 
-        const redactedObject = AssetComputeFilters.redactCredentials(testObj);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(testObj);
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
         assert.equal(redactedObject.uploadToken, "[...REDACTED...]");
@@ -47,7 +47,7 @@ describe("filters.js - Credentials redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const redactedObject = AssetComputeFilters.redactCredentials(parentObj);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(parentObj);
         assert.equal(redactedObject.testObj.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.accessToken, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.uploadToken, "[...REDACTED...]");
@@ -67,7 +67,7 @@ describe("filters.js - Credentials redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const redactedObject = AssetComputeFilters.redactCredentials(parentObj);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(parentObj);
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.uploadToken, "[...REDACTED...]");
@@ -80,7 +80,7 @@ describe("filters.js - Credentials redaction", function() {
         testObj.noRedact = 'no-redact';
         testObj.nestedNoRedact = { aField: 'no-redact' };
 
-        const redactedObject = AssetComputeFilters.redactCredentials(testObj);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(testObj);
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
     });
@@ -94,7 +94,7 @@ describe("filters.js - Credentials removal", function() {
         testObj.uploadToken = 'uploadToken';
         testObj.noRedact = 'no-redact';
 
-        const redactedObject = AssetComputeFilters.redactCredentials(testObj, true);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(testObj, true);
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.accessToken, undefined);
         assert.equal(redactedObject.uploadToken, undefined);
@@ -113,7 +113,7 @@ describe("filters.js - Credentials removal", function() {
 
         parentObj.testObj = testObj;
 
-        const redactedObject = AssetComputeFilters.redactCredentials(parentObj, true);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(parentObj, true);
         assert.equal(redactedObject.testObj.newRelicApiKey, undefined);
         assert.equal(redactedObject.testObj.accessToken, undefined);
         assert.equal(redactedObject.testObj.uploadToken, undefined);
@@ -133,7 +133,7 @@ describe("filters.js - Credentials removal", function() {
 
         parentObj.testObj = testObj;
 
-        const redactedObject = AssetComputeFilters.redactCredentials(parentObj, true);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(parentObj, true);
         console.log(redactedObject);
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.accessToken, undefined);
@@ -147,7 +147,7 @@ describe("filters.js - Credentials removal", function() {
         testObj.noRedact = 'no-redact';
         testObj.nestedNoRedact = { aField: 'no-redact' };
 
-        const redactedObject = AssetComputeFilters.redactCredentials(testObj, true);
+        const redactedObject = AssetComputeLogUtils.redactCredentials(testObj, true);
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
     });
@@ -166,7 +166,7 @@ describe("filters.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const redactedObject = AssetComputeFilters.redact(parentObj, ['threeField', 'oneField', 'twoField'], false);
+        const redactedObject = AssetComputeLogUtils.redact(parentObj, ['threeField', 'oneField', 'twoField'], false);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, "[...REDACTED...]");
         assert.equal(redactedObject.twoField, "[...REDACTED...]");
@@ -187,7 +187,7 @@ describe("filters.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const redactedObject = AssetComputeFilters.redact(parentObj, ['threeField', 'oneField', 'twoField']);
+        const redactedObject = AssetComputeLogUtils.redact(parentObj, ['threeField', 'oneField', 'twoField']);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, "[...REDACTED...]");
         assert.equal(redactedObject.twoField, "[...REDACTED...]");
@@ -210,7 +210,7 @@ describe("filters.js - Custom fields removal", function() {
 
         parentObj.testObj = testObj;
 
-        const redactedObject = AssetComputeFilters.redact(parentObj, ['threeField', 'oneField', 'twoField'], true);
+        const redactedObject = AssetComputeLogUtils.redact(parentObj, ['threeField', 'oneField', 'twoField'], true);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, undefined);
         assert.equal(redactedObject.twoField, undefined);

@@ -23,12 +23,11 @@ const AssetComputeMetrics = require('./lib/metrics');
 const AssetComputeErrors = require('./lib/errors');
 
 // shared functions
-const { AssetComputeFilters } = require('./lib/filters');
+const { AssetComputeLogUtils } = require('./lib/log-utils');
 
 
 module.exports = {
-  // shared <<static>> functions
-  AssetComputeFilters,
+  AssetComputeLogUtils,
 
   // classes
   AssetComputeEvents,
