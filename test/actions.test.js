@@ -21,9 +21,11 @@ const assert = require('assert');
 const { OpenwhiskActionName } = require('../lib/actions');
 
 describe("actions.js - Custom fields removal", function() {
-    it('returns empty string (0 length) when nothing is set', function() {
+    it('returns a default value when name is empty', function() {
         const openwhiskDetails = new OpenwhiskActionName();
-        assert.equal(openwhiskDetails.name, "");
+        assert.ok(openwhiskDetails.name !== "");
+        assert.ok(openwhiskDetails.name !== null);
+        assert.ok(openwhiskDetails.name !== undefined);
     });
 
     it('return NUI TEST ENV value in test env)', function() {
@@ -31,7 +33,7 @@ describe("actions.js - Custom fields removal", function() {
         assert.equal(openwhiskDetails.name, "test_action");
     });
 
-    it('returns value set as env variable (3 parts)', function() {
+    it('returns value when name has 3 parts', function() {
         process.env.__OW_ACTION_NAME = 'namespace/package/action';
         let openwhiskDetails = new OpenwhiskActionName();
         assert.equal(openwhiskDetails.name, "action");
@@ -50,18 +52,26 @@ describe("actions.js - Custom fields removal", function() {
         assert.equal(openwhiskDetails.name, "\n");
         assert.equal(openwhiskDetails.package, "package");
         assert.equal(openwhiskDetails.namespace, "namespace");
+        delete process.env.__OW_ACTION_NAME;
 
-        process.env.__OW_ACTION_NAME = 'namespace/package/action';
-        openwhiskDetails = new OpenwhiskActionName("test_action");
+        openwhiskDetails = new OpenwhiskActionName("namespace/package/action");
         assert.equal(openwhiskDetails.name, "action");
         assert.equal(openwhiskDetails.package, "package");
         assert.equal(openwhiskDetails.namespace, "namespace");
         assert.equal(openwhiskDetails.fullname, "namespace/package/action");
 
-        delete process.env.__OW_ACTION_NAME;
+        openwhiskDetails = new OpenwhiskActionName("namespace/package/  ");
+        assert.equal(openwhiskDetails.name, "  ");
+        assert.equal(openwhiskDetails.package, "package");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        
+        openwhiskDetails = new OpenwhiskActionName("namespace/package/\n");
+        assert.equal(openwhiskDetails.name, "\n");
+        assert.equal(openwhiskDetails.package, "package");
+        assert.equal(openwhiskDetails.namespace, "namespace");
     });
 
-    it('returns value set as env variable (2 parts)', function() {
+    it('returns value when name has 2 parts', function() {
         process.env.__OW_ACTION_NAME = 'namespace/action';
         let openwhiskDetails = new OpenwhiskActionName();
         assert.equal(openwhiskDetails.name, "action");
@@ -80,8 +90,31 @@ describe("actions.js - Custom fields removal", function() {
         assert.equal(openwhiskDetails.name, "\n");
         assert.equal(openwhiskDetails.package, "");
         assert.equal(openwhiskDetails.namespace, "namespace");
-
         delete process.env.__OW_ACTION_NAME;
+
+        openwhiskDetails = new OpenwhiskActionName('namespace/action');
+        assert.equal(openwhiskDetails.name, "action");
+        assert.equal(openwhiskDetails.package, "");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        assert.equal(openwhiskDetails.fullname, "namespace/action");
+
+        openwhiskDetails = new OpenwhiskActionName('namespace/  ');
+        assert.equal(openwhiskDetails.name, "  ");
+        assert.equal(openwhiskDetails.package, "");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+        
+        openwhiskDetails = new OpenwhiskActionName('namespace/\n');
+        assert.equal(openwhiskDetails.name, "\n");
+        assert.equal(openwhiskDetails.package, "");
+        assert.equal(openwhiskDetails.namespace, "namespace");
+    });
+
+    it('returns value when name has 1 part', function() {
+        let openwhiskDetails = new OpenwhiskActionName("this-is-the-name");
+        assert.equal(openwhiskDetails.name, "this-is-the-name");
+        assert.equal(openwhiskDetails.package, "");
+        assert.equal(openwhiskDetails.namespace, "");
+        assert.equal(openwhiskDetails.fullname, "this-is-the-name");
     });
 });
 
