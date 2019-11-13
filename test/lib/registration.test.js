@@ -260,7 +260,7 @@ describe('registration.js - finds successful registration', function() {
         } catch(err){
             console.log(err);
             assert.ok(err instanceof ArgumentError);
-            assert.equal(err.message, "no valid `clientId` request params");
+            assert.equal(err.message, "no valid `clientId` in request params");
         }
     });
 
