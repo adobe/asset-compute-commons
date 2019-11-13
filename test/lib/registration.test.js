@@ -191,7 +191,7 @@ describe('registration.js - finds successful registration', function() {
         }
     });
 
-    it('finds an integration, then a journal', async function() {
+    it('finds an integration, then finds a journal', async function() {
         try{
             const params = {};
             params.clientId = TEST_CLIENT_ID;
@@ -209,7 +209,7 @@ describe('registration.js - finds successful registration', function() {
         }
     });
 
-    it('finds an integration, sets it, then a journal', async function() {
+    it('finds an integration, sets it, then finds a journal', async function() {
         try{
             const params = {};
             params.clientId = TEST_CLIENT_ID;
@@ -272,8 +272,7 @@ describe('registration.js - finds successful registration', function() {
             params.orgId = TEST_ORG;
             params.auth.accessToken = "wrongly formed token";
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.getJournal();
+            new AssetComputeRegistration(params);
 
             assert.fail("Registration check should not have worked");
         } catch(err){
@@ -291,8 +290,7 @@ describe('registration.js - finds successful registration', function() {
             params.orgId = TEST_ORG;
             //params.auth.accessToken = TEST_TOKEN;
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.getJournal();
+            new AssetComputeRegistration(params);
 
             assert.fail("Registration check should not have worked");
         } catch(err){
@@ -310,8 +308,7 @@ describe('registration.js - finds successful registration', function() {
             //params.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.getJournal();
+            new AssetComputeRegistration(params);
 
             assert.fail("Registration check should not have worked");
         } catch(err){
