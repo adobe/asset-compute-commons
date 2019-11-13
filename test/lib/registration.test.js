@@ -2,7 +2,7 @@
  *  ADOBE CONFIDENTIAL
  *  __________________
  *
- *  Copyright 2018 Adobe Systems Incorporated
+ *  Copyright 2019 Adobe Systems Incorporated
  *  All Rights Reserved.
  *
  *  NOTICE:  All information contained herein is, and remains
@@ -116,6 +116,18 @@ describe('registration.js - finds successful registration', function() {
         const registration = new AssetComputeRegistration(params);
         await registration.getJournal();
 
+    });
+
+    it('finds an integration (cached)', async function() {
+        const params = {};
+        params.clientId = TEST_CLIENT_ID;
+        params.auth = {};
+        params.auth.orgId = TEST_ORG;
+        params.auth.accessToken = TEST_TOKEN;
+
+        const registration = new AssetComputeRegistration(params);
+        await registration.getJournal();
+        await registration.getJournal();
     });
 
     it('finds an integration when given custom journal finder function', async function() {
