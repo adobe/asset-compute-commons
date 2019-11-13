@@ -236,14 +236,31 @@ describe('registration.js - finds successful registration', function() {
             params.orgId = TEST_ORG;
             //params.auth.accessToken = TEST_TOKEN;
 
-            const registration = new AssetComputeRegistration(params);
-            await registration.getJournal();
+            new AssetComputeRegistration(params);
 
             assert.fail("Registration check should not have worked");
         } catch(err){
             console.log(err);
             assert.ok(err instanceof ArgumentError);
             assert.equal(err.message, "no valid `accessToken` and `orgId` in request params");
+        }
+    });
+
+    it('throws if client_id is missing', async function() {
+        try{
+            const params = {};
+            //params.clientId = TEST_CLIENT_ID;
+            params.auth = {};
+            params.orgId = TEST_ORG;
+            params.auth.accessToken = TEST_TOKEN;
+
+            new AssetComputeRegistration(params);
+
+            assert.fail("Registration check should not have worked");
+        } catch(err){
+            console.log(err);
+            assert.ok(err instanceof ArgumentError);
+            assert.equal(err.message, "no valid `clientId` request params");
         }
     });
 
