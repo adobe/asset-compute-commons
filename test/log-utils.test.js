@@ -94,7 +94,7 @@ describe("log-utils.js - Credentials redaction", function() {
     });
 });
 
-describe("filters.js - Credentials removal", function() {
+describe("log-utils.js - Credentials removal", function() {
     it('redacts fields', function() {
         const testObj = {};
         testObj.newRelicApiKey = 'newRelicApiKey';
@@ -211,7 +211,7 @@ describe("log-utils.js - Custom fields redaction", function() {
     });
 });
 
-describe("filters.js - Custom fields removal", function() {
+describe("log-utils.js - Custom fields removal", function() {
     it('redacts nested fields (fields at different levels)', function() {
         const parentObj = {};
         parentObj.noRedact = 'no-redact-parent';
@@ -243,3 +243,4 @@ describe("filters.js - Custom fields removal", function() {
         assert.ok(consoleSpy.calledTwice);
     });
 });
+
