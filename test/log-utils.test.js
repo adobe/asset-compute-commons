@@ -15,7 +15,7 @@
  * from Adobe.
  */
 
-'use strict';
+"use strict";
 
 const assert = require('assert');
 const sinon = require('sinon');
@@ -25,14 +25,14 @@ const {AssetComputeLogUtils} = require('../lib/log-utils');
 const rewiredRedact = rewire('../lib/log-utils');
 
 describe("log-utils.js - Credentials redaction", function() {
-    it('redacts fields', function() {
+    it("redacts fields", function() {
         const testObj = {};
-        testObj.newRelicApiKey = 'newRelicApiKey';
-        testObj.accessToken = 'accessToken';
-        testObj.uploadToken = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.accessToken = "accessToken";
+        testObj.uploadToken = "uploadToken";
+        testObj.noRedact = "no-redact";
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(testObj);
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
@@ -40,19 +40,19 @@ describe("log-utils.js - Credentials redaction", function() {
         assert.equal(redactedObject.noRedact, "no-redact");
     });
 
-    it('redacts nested fields (all fields in one level)', function() {
+    it("redacts nested fields (all fields in one level)", function() {
         const parentObj = {};
-        parentObj.noRedact = 'no-redact-parent';
+        parentObj.noRedact = "no-redact-parent";
 
         const testObj = {};
-        testObj.newRelicApiKey = 'newRelicApiKey';
-        testObj.accessToken = 'accessToken';
-        testObj.uploadToken = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.accessToken = "accessToken";
+        testObj.uploadToken = "uploadToken";
+        testObj.noRedact = "no-redact";
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(parentObj);
         assert.equal(redactedObject.testObj.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.accessToken, "[...REDACTED...]");
@@ -61,19 +61,19 @@ describe("log-utils.js - Credentials redaction", function() {
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
 
-    it('redacts nested fields (fields at different levels)', function() {
+    it("redacts nested fields (fields at different levels)", function() {
         const parentObj = {};
-        parentObj.noRedact = 'no-redact-parent';
-        parentObj.newRelicApiKey = 'newRelicApiKey';
-        parentObj.accessToken = 'accessToken';
+        parentObj.noRedact = "no-redact-parent";
+        parentObj.newRelicApiKey = "newRelicApiKey";
+        parentObj.accessToken = "accessToken";
 
         const testObj = {};
-        testObj.uploadToken = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.uploadToken = "uploadToken";
+        testObj.noRedact = "no-redact";
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(parentObj);
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
@@ -82,12 +82,12 @@ describe("log-utils.js - Credentials redaction", function() {
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
 
-    it('does nothing when not needed', function() {
+    it("does nothing when not needed", function() {
         const testObj = {};
-        testObj.noRedact = 'no-redact';
-        testObj.nestedNoRedact = { aField: 'no-redact' };
+        testObj.noRedact = "no-redact";
+        testObj.nestedNoRedact = { aField: "no-redact" };
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(testObj);
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -95,14 +95,14 @@ describe("log-utils.js - Credentials redaction", function() {
 });
 
 describe("log-utils.js - Credentials removal", function() {
-    it('redacts fields', function() {
+    it("redacts fields", function() {
         const testObj = {};
-        testObj.newRelicApiKey = 'newRelicApiKey';
-        testObj.accessToken = 'accessToken';
-        testObj.uploadToken = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.accessToken = "accessToken";
+        testObj.uploadToken = "uploadToken";
+        testObj.noRedact = "no-redact";
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(testObj, true);
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.accessToken, undefined);
@@ -110,19 +110,19 @@ describe("log-utils.js - Credentials removal", function() {
         assert.equal(redactedObject.noRedact, "no-redact");
     });
 
-    it('redacts nested fields (all fields in one level)', function() {
+    it("redacts nested fields (all fields in one level)", function() {
         const parentObj = {};
-        parentObj.noRedact = 'no-redact-parent';
+        parentObj.noRedact = "no-redact-parent";
 
         const testObj = {};
-        testObj.newRelicApiKey = 'newRelicApiKey';
-        testObj.accessToken = 'accessToken';
-        testObj.uploadToken = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.accessToken = "accessToken";
+        testObj.uploadToken = "uploadToken";
+        testObj.noRedact = "no-redact";
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(parentObj, true);
         assert.equal(redactedObject.testObj.newRelicApiKey, undefined);
         assert.equal(redactedObject.testObj.accessToken, undefined);
@@ -131,19 +131,19 @@ describe("log-utils.js - Credentials removal", function() {
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
 
-    it('redacts nested fields (fields at different levels)', function() {
+    it("redacts nested fields (fields at different levels)", function() {
         const parentObj = {};
-        parentObj.noRedact = 'no-redact-parent';
-        parentObj.newRelicApiKey = 'newRelicApiKey';
-        parentObj.accessToken = 'accessToken';
+        parentObj.noRedact = "no-redact-parent";
+        parentObj.newRelicApiKey = "newRelicApiKey";
+        parentObj.accessToken = "accessToken";
 
         const testObj = {};
-        testObj.uploadToken = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.uploadToken = "uploadToken";
+        testObj.noRedact = "no-redact";
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(parentObj, true);
         console.log(redactedObject);
         assert.equal(redactedObject.newRelicApiKey, undefined);
@@ -153,12 +153,12 @@ describe("log-utils.js - Credentials removal", function() {
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
 
-    it('does nothing when not needed', function() {
+    it("does nothing when not needed", function() {
         const testObj = {};
-        testObj.noRedact = 'no-redact';
-        testObj.nestedNoRedact = { aField: 'no-redact' };
+        testObj.noRedact = "no-redact";
+        testObj.nestedNoRedact = { aField: "no-redact" };
 
-        const redactCredentials = rewiredRedact.__get__('redactCredentials');
+        const redactCredentials = rewiredRedact.__get__("redactCredentials");
         const redactedObject = redactCredentials(testObj, true);
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -166,20 +166,20 @@ describe("log-utils.js - Credentials removal", function() {
 });
 
 describe("log-utils.js - Custom fields redaction", function() {
-    it('redacts nested fields (fields at different levels)', function() {
+    it("redacts nested fields (fields at different levels)", function() {
         const parentObj = {};
-        parentObj.noRedact = 'no-redact-parent';
-        parentObj.oneField = 'newRelicApiKey';
-        parentObj.twoField = 'accessToken';
+        parentObj.noRedact = "no-redact-parent";
+        parentObj.oneField = "newRelicApiKey";
+        parentObj.twoField = "accessToken";
 
         const testObj = {};
-        testObj.threeField = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.threeField = "uploadToken";
+        testObj.noRedact = "no-redact";
 
         parentObj.testObj = testObj;
 
-        const redact = rewiredRedact.__get__('redact');
-        const redactedObject = redact(parentObj, ['threeField', 'oneField', 'twoField'], false);
+        const redact = rewiredRedact.__get__("redact");
+        const redactedObject = redact(parentObj, ["threeField", "oneField", "twoField"], false);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, "[...REDACTED...]");
         assert.equal(redactedObject.twoField, "[...REDACTED...]");
@@ -188,20 +188,20 @@ describe("log-utils.js - Custom fields redaction", function() {
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
 
-    it('redacts nested fields (fields at different levels) - defaults to redaction', function() {
+    it("redacts nested fields (fields at different levels) - defaults to redaction", function() {
         const parentObj = {};
-        parentObj.noRedact = 'no-redact-parent';
-        parentObj.oneField = 'newRelicApiKey';
-        parentObj.twoField = 'accessToken';
+        parentObj.noRedact = "no-redact-parent";
+        parentObj.oneField = "newRelicApiKey";
+        parentObj.twoField = "accessToken";
 
         const testObj = {};
-        testObj.threeField = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.threeField = "uploadToken";
+        testObj.noRedact = "no-redact";
 
         parentObj.testObj = testObj;
 
-        const redact = rewiredRedact.__get__('redact');
-        const redactedObject = redact(parentObj, ['threeField', 'oneField', 'twoField']);
+        const redact = rewiredRedact.__get__("redact");
+        const redactedObject = redact(parentObj, ["threeField", "oneField", "twoField"]);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, "[...REDACTED...]");
         assert.equal(redactedObject.twoField, "[...REDACTED...]");
@@ -212,20 +212,20 @@ describe("log-utils.js - Custom fields redaction", function() {
 });
 
 describe("log-utils.js - Custom fields removal", function() {
-    it('redacts nested fields (fields at different levels)', function() {
+    it("redacts nested fields (fields at different levels)", function() {
         const parentObj = {};
-        parentObj.noRedact = 'no-redact-parent';
-        parentObj.oneField = 'newRelicApiKey';
-        parentObj.twoField = 'accessToken';
+        parentObj.noRedact = "no-redact-parent";
+        parentObj.oneField = "newRelicApiKey";
+        parentObj.twoField = "accessToken";
 
         const testObj = {};
-        testObj.threeField = 'uploadToken';
-        testObj.noRedact = 'no-redact';
+        testObj.threeField = "uploadToken";
+        testObj.noRedact = "no-redact";
 
         parentObj.testObj = testObj;
 
-        const redact = rewiredRedact.__get__('redact');
-        const redactedObject = redact(parentObj, ['threeField', 'oneField', 'twoField'], true);
+        const redact = rewiredRedact.__get__("redact");
+        const redactedObject = redact(parentObj, ["threeField", "oneField", "twoField"], true);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, undefined);
         assert.equal(redactedObject.twoField, undefined);
@@ -234,8 +234,8 @@ describe("log-utils.js - Custom fields removal", function() {
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
 
-    it('logs something', function(){
-        const consoleSpy = sinon.spy(console, 'log');
+    it("logs something", function(){
+        const consoleSpy = sinon.spy(console, "log");
 
         AssetComputeLogUtils.log({test: "test"}, "my message");
         AssetComputeLogUtils.log({test: "test"});
@@ -244,3 +244,66 @@ describe("log-utils.js - Custom fields removal", function() {
     });
 });
 
+describe("log-utils.js - Url redaction", function(){
+    it("redact an url", function (){
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://wwww.adobe.com";
+        testObj.noRedact = "no-redact";
+
+        const redactUrl = rewiredRedact.__get__("redactUrl");
+        const res = redactUrl(testObj);
+
+        assert.equal(res.url, "https://adobe.com");
+        assert.equal(res.source, "https://adobe.com:8888");
+        assert.equal(res.target, "https://wwww.adobe.com");
+        assert.equal(res.noRedact, "no-redact");
+    });
+
+    it("redact an url array", function (){
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://wwww.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const redactUrl = rewiredRedact.__get__("redactUrl");
+        const res = redactUrl(testObj);
+
+        assert.equal(res.source, "https://adobe.com:8888");
+        assert.equal(res.target, "https://wwww.adobe.com");
+        assert.equal(res.noRedact, "no-redact");
+
+        assert.equal(res.urls[0], "https://adobe.com");
+        assert.equal(res.urls[1], "https://adobe.com:1234");
+        assert.equal(res.urls[2], "https://very.long.host.name.adobe.com");
+        assert.equal(res.urls[3], "https://adobe.com:80");
+        assert.equal(res.urls[4], "https://adobe.com:8080");
+        assert.equal(res.urls[5], "https://adobe1.com:8181");
+        assert.equal(res.urls[6], "https://adobe80.com:8080");
+        assert.equal(res.urls[7], "https://adobe.80.com:8080");
+    });
+
+    it("ignores non-urls", function (){
+        const testObj = {};
+        testObj.url = "ftp://adobe.com/something?query=stuff";
+        testObj.noRedact = "no-redact";
+
+        const redactUrl = rewiredRedact.__get__("redactUrl");
+        const res = redactUrl(testObj);
+
+        assert.equal(res.url, "ftp://adobe.com/something?query=stuff");
+        assert.equal(res.noRedact, "no-redact");
+    });
+});
