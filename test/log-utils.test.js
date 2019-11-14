@@ -18,9 +18,13 @@
 'use strict';
 
 const assert = require('assert');
-const {redactCredentials, redact} = require('../lib/filters');
+const sinon = require('sinon');
+const rewire = require('rewire');
 
-describe("filters.js - Credentials redaction", function() {
+const {AssetComputeLogUtils} = require('../lib/log-utils');
+const rewiredRedact = rewire('../lib/log-utils');
+
+describe("log-utils.js - Credentials redaction", function() {
     it('redacts fields', function() {
         const testObj = {};
         testObj.newRelicApiKey = 'newRelicApiKey';
@@ -28,6 +32,7 @@ describe("filters.js - Credentials redaction", function() {
         testObj.uploadToken = 'uploadToken';
         testObj.noRedact = 'no-redact';
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(testObj);
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
@@ -47,6 +52,7 @@ describe("filters.js - Credentials redaction", function() {
 
         parentObj.testObj = testObj;
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(parentObj);
         assert.equal(redactedObject.testObj.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.accessToken, "[...REDACTED...]");
@@ -67,6 +73,7 @@ describe("filters.js - Credentials redaction", function() {
 
         parentObj.testObj = testObj;
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(parentObj);
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
@@ -80,6 +87,7 @@ describe("filters.js - Credentials redaction", function() {
         testObj.noRedact = 'no-redact';
         testObj.nestedNoRedact = { aField: 'no-redact' };
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(testObj);
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -94,6 +102,7 @@ describe("filters.js - Credentials removal", function() {
         testObj.uploadToken = 'uploadToken';
         testObj.noRedact = 'no-redact';
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(testObj, true);
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.accessToken, undefined);
@@ -113,6 +122,7 @@ describe("filters.js - Credentials removal", function() {
 
         parentObj.testObj = testObj;
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(parentObj, true);
         assert.equal(redactedObject.testObj.newRelicApiKey, undefined);
         assert.equal(redactedObject.testObj.accessToken, undefined);
@@ -133,6 +143,7 @@ describe("filters.js - Credentials removal", function() {
 
         parentObj.testObj = testObj;
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(parentObj, true);
         console.log(redactedObject);
         assert.equal(redactedObject.newRelicApiKey, undefined);
@@ -147,13 +158,14 @@ describe("filters.js - Credentials removal", function() {
         testObj.noRedact = 'no-redact';
         testObj.nestedNoRedact = { aField: 'no-redact' };
 
+        const redactCredentials = rewiredRedact.__get__('redactCredentials');
         const redactedObject = redactCredentials(testObj, true);
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
     });
 });
 
-describe("filters.js - Custom fields redaction", function() {
+describe("log-utils.js - Custom fields redaction", function() {
     it('redacts nested fields (fields at different levels)', function() {
         const parentObj = {};
         parentObj.noRedact = 'no-redact-parent';
@@ -166,6 +178,7 @@ describe("filters.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
+        const redact = rewiredRedact.__get__('redact');
         const redactedObject = redact(parentObj, ['threeField', 'oneField', 'twoField'], false);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, "[...REDACTED...]");
@@ -187,6 +200,7 @@ describe("filters.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
+        const redact = rewiredRedact.__get__('redact');
         const redactedObject = redact(parentObj, ['threeField', 'oneField', 'twoField']);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, "[...REDACTED...]");
@@ -210,6 +224,7 @@ describe("filters.js - Custom fields removal", function() {
 
         parentObj.testObj = testObj;
 
+        const redact = rewiredRedact.__get__('redact');
         const redactedObject = redact(parentObj, ['threeField', 'oneField', 'twoField'], true);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, undefined);
@@ -217,5 +232,14 @@ describe("filters.js - Custom fields removal", function() {
         assert.equal(redactedObject.testObj.threeField, undefined);
         assert.equal(redactedObject.testObj.noRedact, "no-redact");
         assert.equal(redactedObject.noRedact, "no-redact-parent");
+    });
+
+    it('logs something', function(){
+        const consoleSpy = sinon.spy(console, 'log');
+
+        AssetComputeLogUtils.log({test: "test"}, "my message");
+        AssetComputeLogUtils.log({test: "test"});
+
+        assert.ok(consoleSpy.calledTwice);
     });
 });
