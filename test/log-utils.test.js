@@ -259,13 +259,44 @@ describe("log-utils.js - Url redaction", function(){
         testObj.target = "https://wwww.adobe.com";
         testObj.noRedact = "no-redact";
 
-        const redactUrl = rewiredRedact.__get__("redactUrl");
-        const res = redactUrl(testObj);
+        const res = AssetComputeLogUtils.redactUrl(testObj);
 
         assert.equal(res.url, "https://adobe.com");
         assert.equal(res.source, "https://adobe.com:8888");
         assert.equal(res.target, "https://wwww.adobe.com");
         assert.equal(res.noRedact, "no-redact");
+    });
+
+    it("redact a single url string (non object)", function (){
+        const testObj = "https://adobe.com/something?query=stuff";
+
+        const res = AssetComputeLogUtils.redactUrl(testObj);
+
+        assert.equal(res, "https://adobe.com");
+    });
+
+    it("redact a url array (non-object)", function (){
+        const testObj = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const res = AssetComputeLogUtils.redactUrl(testObj);
+
+        assert.equal(res[0], "https://adobe.com");
+        assert.equal(res[1], "https://adobe.com:1234");
+        assert.equal(res[2], "https://very.long.host.name.adobe.com");
+        assert.equal(res[3], "https://adobe.com:80");
+        assert.equal(res[4], "https://adobe.com:8080");
+        assert.equal(res[5], "https://adobe1.com:8181");
+        assert.equal(res[6], "https://adobe80.com:8080");
+        assert.equal(res[7], "https://adobe.80.com:8080");
     });
 
     it("redact an url array", function (){
@@ -285,8 +316,7 @@ describe("log-utils.js - Url redaction", function(){
             "https://adobe.80.com:8080/something?query=stuff"
         ];
 
-        const redactUrl = rewiredRedact.__get__("redactUrl");
-        const res = redactUrl(testObj);
+        const res = AssetComputeLogUtils.redactUrl(testObj);
 
         assert.equal(res.source, "https://adobe.com:8888");
         assert.equal(res.target, "https://wwww.adobe.com");
@@ -308,8 +338,7 @@ describe("log-utils.js - Url redaction", function(){
         testObj.noRedact = "no-redact";
         testObj.target = 42;
 
-        const redactUrl = rewiredRedact.__get__("redactUrl");
-        const res = redactUrl(testObj);
+        const res = AssetComputeLogUtils.redactUrl(testObj);
 
         assert.equal(res.url, "ftp://adobe.com/something?query=stuff");
         assert.equal(res.noRedact, "no-redact");
