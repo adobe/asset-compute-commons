@@ -241,6 +241,13 @@ describe("log-utils.js - Custom fields removal", function() {
         AssetComputeLogUtils.log({test: "test"});
 
         assert.ok(consoleSpy.calledTwice);
+        let spyCallArgs = consoleSpy.getCall(0).args[0];
+        assert.equal(spyCallArgs, "my message");
+
+        spyCallArgs = consoleSpy.getCall(1).args[0];
+        assert.equal(spyCallArgs.test, "test");
+
+        console.log.restore();
     });
 });
 
@@ -299,11 +306,56 @@ describe("log-utils.js - Url redaction", function(){
         const testObj = {};
         testObj.url = "ftp://adobe.com/something?query=stuff";
         testObj.noRedact = "no-redact";
+        testObj.target = 42;
 
         const redactUrl = rewiredRedact.__get__("redactUrl");
         const res = redactUrl(testObj);
 
         assert.equal(res.url, "ftp://adobe.com/something?query=stuff");
         assert.equal(res.noRedact, "no-redact");
+        assert.equal(res.target, 42);
+    });
+
+    it("logs something", function(){
+        const consoleSpy = sinon.spy(console, "log");
+
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        AssetComputeLogUtils.log(testObj, "my message");
+        AssetComputeLogUtils.log(testObj);
+
+        assert.ok(consoleSpy.calledTwice);
+        let spyCallArgs = consoleSpy.getCall(0).args[0];
+        assert.equal(spyCallArgs, "my message");
+
+        spyCallArgs = consoleSpy.getCall(1).args[0];
+        assert.equal(spyCallArgs.url, "https://adobe.com");
+        assert.equal(spyCallArgs.source, "https://adobe.com:8888");
+        assert.equal(spyCallArgs.target, "https://www.adobe.com");
+        assert.equal(spyCallArgs.noRedact, "no-redact");
+        assert.equal(spyCallArgs.urls[0], "https://adobe.com");
+        assert.equal(spyCallArgs.urls[1], "https://adobe.com:1234");
+        assert.equal(spyCallArgs.urls[2], "https://very.long.host.name.adobe.com");
+        assert.equal(spyCallArgs.urls[3], "https://adobe.com:80");
+        assert.equal(spyCallArgs.urls[4], "https://adobe.com:8080");
+        assert.equal(spyCallArgs.urls[5], "https://adobe1.com:8181");
+        assert.equal(spyCallArgs.urls[6], "https://adobe80.com:8080");
+        assert.equal(spyCallArgs.urls[7], "https://adobe.80.com:8080");
+
+        console.log.restore();
     });
 });
