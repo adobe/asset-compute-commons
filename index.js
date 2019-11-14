@@ -17,19 +17,18 @@
 
 'use strict';
 
-// classes
+
+const OpenwhiskActionName = require('./lib/actions');
 const AssetComputeEvents = require('./lib/events');
 const AssetComputeMetrics = require('./lib/metrics');
 const AssetComputeErrors = require('./lib/errors');
 
-// shared functions
 const { AssetComputeLogUtils } = require('./lib/log-utils');
 
 
 module.exports = {
+  OpenwhiskActionName,
   AssetComputeLogUtils,
-
-  // classes
   AssetComputeEvents,
   AssetComputeMetrics,
   ...AssetComputeErrors

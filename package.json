@@ -1,6 +1,6 @@
 {
   "name": "@nui/asset-compute-commons",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "main": "index.js",
   "description": "Common utilities needed by all Asset Compute serverless actions",
   "author": {
@@ -35,6 +35,6 @@
   },
   "scripts": {
     "pretest": "eslint ./",
-    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha ./test"
+    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha ./test/*"
   }
 }
