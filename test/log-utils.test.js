@@ -32,8 +32,16 @@ describe("log-utils.js - Credentials redaction", function() {
         testObj.uploadToken = "uploadToken";
         testObj.noRedact = "no-redact";
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(testObj);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
         assert.equal(redactedObject.uploadToken, "[...REDACTED...]");
@@ -52,8 +60,16 @@ describe("log-utils.js - Credentials redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(parentObj);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(parentObj, options, false);
+
         assert.equal(redactedObject.testObj.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.accessToken, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.uploadToken, "[...REDACTED...]");
@@ -73,8 +89,16 @@ describe("log-utils.js - Credentials redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(parentObj);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(parentObj, options, false);
+
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
         assert.equal(redactedObject.testObj.uploadToken, "[...REDACTED...]");
@@ -87,9 +111,73 @@ describe("log-utils.js - Credentials redaction", function() {
         testObj.noRedact = "no-redact";
         testObj.nestedNoRedact = { aField: "no-redact" };
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(testObj);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+
         assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
+    });
+
+    it("does nothing when no rule is entered", function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.nestedNoRedact = { aField: "no-redact" };
+
+        const options = [];
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
+        assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
+    });
+
+    it("does nothing when rules have wrong format", function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.nestedNoRedact = { aField: "no-redact" };
+
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: 42}
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
+        assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
+    });
+
+    it("does nothing when there is no field to handle", function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.nestedNoRedact = { aField: "no-redact" };
+
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: [], redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
     });
 });
@@ -102,8 +190,16 @@ describe("log-utils.js - Credentials removal", function() {
         testObj.uploadToken = "uploadToken";
         testObj.noRedact = "no-redact";
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(testObj, true);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, true);
+
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.accessToken, undefined);
         assert.equal(redactedObject.uploadToken, undefined);
@@ -122,8 +218,16 @@ describe("log-utils.js - Credentials removal", function() {
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(parentObj, true);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(parentObj, options, true);
+
         assert.equal(redactedObject.testObj.newRelicApiKey, undefined);
         assert.equal(redactedObject.testObj.accessToken, undefined);
         assert.equal(redactedObject.testObj.uploadToken, undefined);
@@ -143,9 +247,16 @@ describe("log-utils.js - Credentials removal", function() {
 
         parentObj.testObj = testObj;
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(parentObj, true);
-        console.log(redactedObject);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(parentObj, options, true);
+
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.accessToken, undefined);
         assert.equal(redactedObject.testObj.uploadToken, undefined);
@@ -158,9 +269,73 @@ describe("log-utils.js - Credentials removal", function() {
         testObj.noRedact = "no-redact";
         testObj.nestedNoRedact = { aField: "no-redact" };
 
-        const redactCredentials = rewiredRedact.__get__("redactCredentials");
-        const redactedObject = redactCredentials(testObj, true);
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+
         assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
+    });
+
+    it("does nothing when no rule is entered and silent remove is true", function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.nestedNoRedact = { aField: "no-redact" };
+
+        const options = [];
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, true);
+        
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
+        assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
+    });
+
+    it("ignores functions when rules have wrong format and silent remove is true", function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.nestedNoRedact = { aField: "no-redact" };
+
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: 42}
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, true);
+        
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.newRelicApiKey, undefined);
+        assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
+    });
+
+    it("does nothing when there is no field to handle", function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.newRelicApiKey = "newRelicApiKey";
+        testObj.nestedNoRedact = { aField: "no-redact" };
+
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: [], redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, true);
+        
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
     });
 });
@@ -178,8 +353,12 @@ describe("log-utils.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
+        const options = [ 
+            {redactionList: ["oneField", "twoField", "threeField"], redactionFn: function (){ return "[...REDACTED...]"} }
+        ];
+
         const redact = rewiredRedact.__get__("redact");
-        const redactedObject = redact(parentObj, ["threeField", "oneField", "twoField"], false);
+        const redactedObject = redact(parentObj, options, false);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, "[...REDACTED...]");
         assert.equal(redactedObject.twoField, "[...REDACTED...]");
@@ -188,7 +367,7 @@ describe("log-utils.js - Custom fields redaction", function() {
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
 
-    it("redacts nested fields (fields at different levels) - defaults to redaction", function() {
+    it("redacts nested fields (fields at different levels) - can use custom rules", function() {
         const parentObj = {};
         parentObj.noRedact = "no-redact-parent";
         parentObj.oneField = "newRelicApiKey";
@@ -200,12 +379,17 @@ describe("log-utils.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
+        const options = [ 
+                            {redactionList: ["oneField", "twoField"], redactionFn: function (){ return "[...REDACTED2...]"} },
+                            {redactionList: ["threeField"], redactionFn: function (){ return "[...REDACTED3...]"} },
+                        ];
+
         const redact = rewiredRedact.__get__("redact");
-        const redactedObject = redact(parentObj, ["threeField", "oneField", "twoField"]);
+        const redactedObject = redact(parentObj, options);
         console.log(redactedObject);
-        assert.equal(redactedObject.oneField, "[...REDACTED...]");
-        assert.equal(redactedObject.twoField, "[...REDACTED...]");
-        assert.equal(redactedObject.testObj.threeField, "[...REDACTED...]");
+        assert.equal(redactedObject.oneField, "[...REDACTED2...]");
+        assert.equal(redactedObject.twoField, "[...REDACTED2...]");
+        assert.equal(redactedObject.testObj.threeField, "[...REDACTED3...]");
         assert.equal(redactedObject.testObj.noRedact, "no-redact");
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
@@ -224,8 +408,10 @@ describe("log-utils.js - Custom fields removal", function() {
 
         parentObj.testObj = testObj;
 
+        const options = [ {redactionList: ["threeField", "oneField", "twoField"], redactionFn: function (){ return "[...REDACTED...]"} } ];
+
         const redact = rewiredRedact.__get__("redact");
-        const redactedObject = redact(parentObj, ["threeField", "oneField", "twoField"], true);
+        const redactedObject = redact(parentObj, options, true);
         console.log(redactedObject);
         assert.equal(redactedObject.oneField, undefined);
         assert.equal(redactedObject.twoField, undefined);
@@ -386,5 +572,227 @@ describe("log-utils.js - Url redaction", function(){
         assert.equal(spyCallArgs.urls[7], "https://adobe.80.com:8080");
 
         console.log.restore();
+    });
+
+    it("clones the original object", function() {
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const fieldsToRedact = rewiredRedact.__get__("URL_FIELDS_TO_REDACT");
+        const redactFn = rewiredRedact.__get__("redactUrls");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactFn}
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.ok(redactedObject.source !== testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.ok(redactedObject.urls[0] !== testObj.urls[0]);
+        assert.ok(redactedObject.urls[1] !== testObj.urls[1]);
+        assert.ok(redactedObject.urls[2] !== testObj.urls[2]);
+        assert.ok(redactedObject.urls[3] !== testObj.urls[3]);
+        assert.ok(redactedObject.urls[4] !== testObj.urls[4]);
+        assert.ok(redactedObject.urls[5] !== testObj.urls[5]);
+        assert.ok(redactedObject.urls[6] !== testObj.urls[6]);
+        assert.ok(redactedObject.urls[7] !== testObj.urls[7]);
+    });
+
+    it("does nothing when no rule is entered", function() {
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const options = [];
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+    });
+
+    it("does nothing when rules have wrong format", function() {
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const fieldsToRedact = rewiredRedact.__get__("URL_FIELDS_TO_REDACT");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: 42}
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+    });
+
+    it("does nothing when rules are not an array", function() {
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        let redactedObject = redact(testObj, {}, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+
+        redactedObject = redact(testObj, 42, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+
+        redactedObject = redact(testObj, "", false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+    });
+
+    it("does nothing when there is no field to handle", function() {
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: [], redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
     });
 });
