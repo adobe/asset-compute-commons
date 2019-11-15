@@ -574,6 +574,47 @@ describe("log-utils.js - Url redaction", function(){
         console.log.restore();
     });
 
+    it("clones the original object", function() {
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const fieldsToRedact = rewiredRedact.__get__("URL_FIELDS_TO_REDACT");
+        const redactFn = rewiredRedact.__get__("redactUrls");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactFn}
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        
+        assert.ok(redactedObject.source !== testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.ok(redactedObject.urls[0] !== testObj.urls[0]);
+        assert.ok(redactedObject.urls[1] !== testObj.urls[1]);
+        assert.ok(redactedObject.urls[2] !== testObj.urls[2]);
+        assert.ok(redactedObject.urls[3] !== testObj.urls[3]);
+        assert.ok(redactedObject.urls[4] !== testObj.urls[4]);
+        assert.ok(redactedObject.urls[5] !== testObj.urls[5]);
+        assert.ok(redactedObject.urls[6] !== testObj.urls[6]);
+        assert.ok(redactedObject.urls[7] !== testObj.urls[7]);
+    });
+
     it("does nothing when no rule is entered", function() {
         const testObj = {};
         testObj.url = "https://adobe.com/something?query=stuff";
@@ -635,6 +676,71 @@ describe("log-utils.js - Url redaction", function(){
         const redact = rewiredRedact.__get__("redact");
         
         const redactedObject = redact(testObj, options, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+    });
+
+    it("does nothing when rules are not an array", function() {
+        const testObj = {};
+        testObj.url = "https://adobe.com/something?query=stuff";
+        testObj.source = "https://adobe.com:8888/something?query=stuff";
+        testObj.target = "https://www.adobe.com";
+        testObj.noRedact = "no-redact";
+        testObj.urls = [
+            "https://adobe.com/something?query=stuff",
+            "https://adobe.com:1234/something?query=stuff",
+            "https://very.long.host.name.adobe.com/something?query=stuff",
+            "https://adobe.com:80/something?query=stuff&otherstuff=somethingelse",
+            "https://adobe.com:8080/something?query=stuff",
+            "https://adobe1.com:8181/file.jpg",
+            "https://adobe80.com:8080/something?query=stuff",
+            "https://adobe.80.com:8080/something?query=stuff"
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        let redactedObject = redact(testObj, {}, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+
+        redactedObject = redact(testObj, 42, false);
+        
+        assert.equal(redactedObject.source, testObj.source);
+        assert.equal(redactedObject.target, testObj.target);
+        assert.equal(redactedObject.noRedact, testObj.noRedact);
+
+        assert.equal(redactedObject.urls[0], testObj.urls[0]);
+        assert.equal(redactedObject.urls[1], testObj.urls[1]);
+        assert.equal(redactedObject.urls[2], testObj.urls[2]);
+        assert.equal(redactedObject.urls[3], testObj.urls[3]);
+        assert.equal(redactedObject.urls[4], testObj.urls[4]);
+        assert.equal(redactedObject.urls[5], testObj.urls[5]);
+        assert.equal(redactedObject.urls[6], testObj.urls[6]);
+        assert.equal(redactedObject.urls[7], testObj.urls[7]);
+
+        redactedObject = redact(testObj, "", false);
         
         assert.equal(redactedObject.source, testObj.source);
         assert.equal(redactedObject.target, testObj.target);
