@@ -38,6 +38,12 @@ const FAKE_PARAMS = {
     }
 };
 
+const FAKE_PARAMS_NO_AUTH = {
+    newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+    newRelicApiKey: NR_FAKE_API_KEY,
+    ingestionId: "ingestionId"
+};
+
 describe("AssetComputeEvents", function() {
     beforeEach(function() {
         delete process.env.NUI_UNIT_TEST_OUT;
@@ -78,7 +84,8 @@ describe("AssetComputeEvents", function() {
         const fsEventDir = tmp.dirSync().name;
         process.env.NUI_UNIT_TEST_OUT = fsEventDir;
 
-        const events = new AssetComputeEvents(FAKE_PARAMS);
+        // make sure to not include params.auth since that is missing for unit tests
+        const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);
         await events.sendEvent("my_event", {test: "value"});
 
         const writtenEvent = JSON.parse(fs.readFileSync(`${fsEventDir}/events/event0.json`).toString());
