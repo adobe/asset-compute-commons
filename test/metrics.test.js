@@ -306,7 +306,6 @@ describe("AssetComputeMetrics", function() {
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.handleError(new GenericError("message"));
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
     });
 
     it("handleError - missing __OW_ACTION_NAME", async function() {
@@ -327,10 +326,8 @@ describe("AssetComputeMetrics", function() {
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
         await metrics.handleError(new GenericError("message"));
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
     });
 
     it("send timeout metrics", async function() {
@@ -360,10 +357,8 @@ describe("AssetComputeMetrics", function() {
             }, 500);
 
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-            metrics.close();
         });
 
         it("auth is missing", async function() {
@@ -384,10 +379,8 @@ describe("AssetComputeMetrics", function() {
                 newRelicApiKey: NR_FAKE_API_KEY,
                 ingestionId: "ingestionId"
             });
-            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-            metrics.close();
         });
 
         it("auth.accessToken is invalid", async function() {
@@ -413,10 +406,8 @@ describe("AssetComputeMetrics", function() {
                     accessToken: "INVALID-TOKEN"
                 }
             });
-            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-            metrics.close();
         });
 
         it("auth.accessToken parsing throws", async function() {
@@ -443,10 +434,8 @@ describe("AssetComputeMetrics", function() {
                 }, 200, false);
 
                 const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-                metrics.start();
                 await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
                 assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-                metrics.close();
 
             } finally {
                 jsonwebtoken.decode = originalDecode;
@@ -467,10 +456,8 @@ describe("AssetComputeMetrics", function() {
                 });
 
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE);
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-            metrics.close();
         });
     });
 });
