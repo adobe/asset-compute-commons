@@ -19,7 +19,6 @@
     "ajv": "^5.0.0",
     "clone": "^2.1.2",
     "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^2.6.0",
     "tmp": "^0.1.0",
     "valid-url": "^1.0.9"
   },
