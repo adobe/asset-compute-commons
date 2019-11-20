@@ -82,6 +82,7 @@ describe("AssetComputeMetrics", function() {
         process.env.__OW_ACTION_NAME = "/namespace/package/action";
         process.env.__OW_NAMESPACE = "namespace";
         process.env.__OW_ACTIVATION_ID = "activationId";
+        process.env.__OW_DEADLINE = Date.now() + 60000;
     })
 
     it("constructor and all methods should be lenient and accept empty argument lists", async function() {
@@ -319,6 +320,24 @@ describe("AssetComputeMetrics", function() {
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         metrics.close();
     });
+
+    it("send timeout metrics", async function() {
+        let metrics;
+        try {
+            const nockSendEvent = expectNewRelicInsightsEvent({
+                eventType: "timeout"
+            }, 200, true);
+            process.env.__OW_DEADLINE = Date.now() + 5;
+            metrics = new AssetComputeMetrics(FAKE_PARAMS);
+            const { promisify } = require('util');
+            const sleep = promisify(setTimeout);
+            await sleep(1000);
+            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        }
+        finally {
+            metrics.close();
+        }
+	});
 
     describe("negative error cases", function() {
         it("sendMetrics fails", async function() {
