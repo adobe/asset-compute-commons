@@ -106,6 +106,16 @@ describe("AssetComputeEvents", function() {
         });
     });
 
+    it("sendEvent - handled error if no auth", async function() {
+        // not setting this
+        delete process.env.NUI_UNIT_TEST_OUT;
+
+        // ...and not setting params.auth
+        const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);
+        await events.sendEvent("my_event", {test: "value"});
+        // should not throw an error
+    });
+
     it("sendEvent - IO events", async function() {
         const nockSendEvent = nock("https://eg-ingress.adobe.io")
             .filteringRequestBody(body => {
