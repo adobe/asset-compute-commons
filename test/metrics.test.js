@@ -88,6 +88,7 @@ describe("AssetComputeMetrics", function() {
     it("constructor and all methods should be lenient and accept empty argument lists", async function() {
         let metrics = new AssetComputeMetrics();
         assert.ok(metrics);
+        metrics.start();
         await metrics.sendMetrics();
         await metrics.sendErrorMetrics();
         await metrics.sendClientErrorMetrics();
@@ -96,6 +97,7 @@ describe("AssetComputeMetrics", function() {
 
         metrics = new AssetComputeMetrics({});
         assert.ok(metrics);
+        metrics.start();
         await metrics.sendMetrics();
         await metrics.sendErrorMetrics();
         await metrics.sendClientErrorMetrics();
@@ -110,6 +112,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         metrics.close();
@@ -141,6 +144,7 @@ describe("AssetComputeMetrics", function() {
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
+        metrics.start();
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         metrics.close();
@@ -173,6 +177,7 @@ describe("AssetComputeMetrics", function() {
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
+        metrics.start();
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         metrics.close();
@@ -187,6 +192,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         await metrics.sendErrorMetrics("location", "message", { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         metrics.close();
@@ -201,6 +207,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         await metrics.sendClientErrorMetrics(Reason.SourceCorrupt, "message", { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         metrics.close();
@@ -215,6 +222,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         await metrics.handleError(new Error("message"), {
             location: "location",
             metrics: {
@@ -235,6 +243,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         const httpError = new Error("http message");
         httpError.statusCode = 400;
         await metrics.handleError(httpError, {
@@ -256,6 +265,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         const httpError = new SourceFormatUnsupportedError("message");
         httpError.statusCode = 400;
         await metrics.handleError(httpError, {
@@ -276,6 +286,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         await metrics.handleError(new GenericError("message", "location"), {
             metrics: {
                 test: "value"
@@ -316,6 +327,7 @@ describe("AssetComputeMetrics", function() {
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        metrics.start();
         await metrics.handleError(new GenericError("message"));
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         metrics.close();
@@ -329,6 +341,7 @@ describe("AssetComputeMetrics", function() {
             }, 200, true);
             process.env.__OW_DEADLINE = Date.now() + 5;
             metrics = new AssetComputeMetrics(FAKE_PARAMS);
+            metrics.start();
             const { promisify } = require('util');
             const sleep = promisify(setTimeout);
             await sleep(1000);
@@ -347,6 +360,7 @@ describe("AssetComputeMetrics", function() {
             }, 500);
 
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
             metrics.close();
@@ -370,6 +384,7 @@ describe("AssetComputeMetrics", function() {
                 newRelicApiKey: NR_FAKE_API_KEY,
                 ingestionId: "ingestionId"
             });
+            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
             metrics.close();
@@ -398,6 +413,7 @@ describe("AssetComputeMetrics", function() {
                     accessToken: "INVALID-TOKEN"
                 }
             });
+            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
             metrics.close();
@@ -427,6 +443,7 @@ describe("AssetComputeMetrics", function() {
                 }, 200, false);
 
                 const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+                metrics.start();
                 await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
                 assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
                 metrics.close();
@@ -450,6 +467,7 @@ describe("AssetComputeMetrics", function() {
                 });
 
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+            metrics.start();
             await metrics.sendMetrics(EVENT_TYPE);
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
             metrics.close();
