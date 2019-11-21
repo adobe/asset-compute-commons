@@ -21,8 +21,8 @@ const assert = require('assert');
 const nock = require('nock');
 const zlib = require('zlib');
 const jsonwebtoken = require('jsonwebtoken');
-const AssetComputeMetrics = require('../../lib/metrics');
-const { Reason, SourceFormatUnsupportedError, GenericError } = require('../../lib/errors');
+const AssetComputeMetrics = require('../lib/metrics');
+const { Reason, SourceFormatUnsupportedError, GenericError } = require('../lib/errors');
 
 const NR_FAKE_BASE_URL = "http://newrelic.com";
 const NR_FAKE_EVENTS_PATH = "/events";
