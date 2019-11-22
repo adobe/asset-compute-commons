@@ -88,21 +88,21 @@ describe("AssetComputeMetrics", function() {
     it("constructor and all methods should be lenient and accept empty argument lists", async function() {
         let metrics = new AssetComputeMetrics();
         assert.ok(metrics);
-        metrics.start();
+
         await metrics.sendMetrics();
         await metrics.sendErrorMetrics();
         await metrics.sendClientErrorMetrics();
         await metrics.handleError();
-        metrics.close();
+        metrics.activationFinished();
 
         metrics = new AssetComputeMetrics({});
         assert.ok(metrics);
-        metrics.start();
+
         await metrics.sendMetrics();
         await metrics.sendErrorMetrics();
         await metrics.sendClientErrorMetrics();
         await metrics.handleError();
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("sendMetrics", async function() {
@@ -112,10 +112,10 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
+
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("sendMetrics - No Source Object", async function() {
@@ -144,10 +144,10 @@ describe("AssetComputeMetrics", function() {
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
-        metrics.start();
+
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("sendMetrics - Source Object empty", async function() {
@@ -177,10 +177,10 @@ describe("AssetComputeMetrics", function() {
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
-        metrics.start();
+
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("sendErrorMetrics", async function() {
@@ -192,10 +192,10 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
+
         await metrics.sendErrorMetrics("location", "message", { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("sendClientErrorMetrics", async function() {
@@ -207,10 +207,10 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
+
         await metrics.sendClientErrorMetrics(Reason.SourceCorrupt, "message", { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("handleError - new Error", async function() {
@@ -222,7 +222,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
+
         await metrics.handleError(new Error("message"), {
             location: "location",
             metrics: {
@@ -230,7 +230,7 @@ describe("AssetComputeMetrics", function() {
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("handleError - new HTTP Error", async function() {
@@ -243,7 +243,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
+
         const httpError = new Error("http message");
         httpError.statusCode = 400;
         await metrics.handleError(httpError, {
@@ -253,7 +253,7 @@ describe("AssetComputeMetrics", function() {
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("handleError - new ClientError/SourceFormatUnsupportedError", async function() {
@@ -265,7 +265,7 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
+
         const httpError = new SourceFormatUnsupportedError("message");
         httpError.statusCode = 400;
         await metrics.handleError(httpError, {
@@ -274,7 +274,7 @@ describe("AssetComputeMetrics", function() {
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("handleError - new GenericError", async function() {
@@ -286,14 +286,14 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.start();
+
         await metrics.handleError(new GenericError("message", "location"), {
             metrics: {
                 test: "value"
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.close();
+        metrics.activationFinished();
     });
 
     it("handleError - default location", async function() {
@@ -306,6 +306,7 @@ describe("AssetComputeMetrics", function() {
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.handleError(new GenericError("message"));
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("handleError - missing __OW_ACTION_NAME", async function() {
@@ -328,6 +329,7 @@ describe("AssetComputeMetrics", function() {
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.handleError(new GenericError("message"));
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("send timeout metrics", async function() {
@@ -338,15 +340,32 @@ describe("AssetComputeMetrics", function() {
             }, 200, true);
             process.env.__OW_DEADLINE = Date.now() + 5;
             metrics = new AssetComputeMetrics(FAKE_PARAMS);
-            metrics.start();
+
             const { promisify } = require('util');
             const sleep = promisify(setTimeout);
-            await sleep(1000);
+            await sleep(500);
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
         }
         finally {
-            metrics.close();
+            metrics.activationFinished();
         }
+    });
+
+    it("timeout metrics disabled - no `activationFinished()` call needed", async function() {
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value"
+        });
+        process.env.__OW_DEADLINE = Date.now() + 5;
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS, {
+            disableActionTimeout:true
+        });
+
+        const { promisify } = require('util');
+        const sleep = promisify(setTimeout);
+        await sleep(500);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
 	});
 
     describe("negative error cases", function() {
@@ -359,6 +378,7 @@ describe("AssetComputeMetrics", function() {
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
 
         it("auth is missing", async function() {
@@ -381,6 +401,7 @@ describe("AssetComputeMetrics", function() {
             });
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
 
         it("auth.accessToken is invalid", async function() {
@@ -408,6 +429,7 @@ describe("AssetComputeMetrics", function() {
             });
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
 
         it("auth.accessToken parsing throws", async function() {
@@ -436,6 +458,7 @@ describe("AssetComputeMetrics", function() {
                 const metrics = new AssetComputeMetrics(FAKE_PARAMS);
                 await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
                 assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+                metrics.activationFinished();
 
             } finally {
                 jsonwebtoken.decode = originalDecode;
@@ -458,6 +481,7 @@ describe("AssetComputeMetrics", function() {
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
             await metrics.sendMetrics(EVENT_TYPE);
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
     });
 });
