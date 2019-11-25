@@ -55,6 +55,7 @@ const EXPECTED_METRICS = {
     sourceName: "AssetName.txt",
     sourceMimetype: "mimetype",
     sourceSize: "size",
+    timestamp: /\d+/
 };
 
 function gunzip(body) {
@@ -81,22 +82,27 @@ describe("AssetComputeMetrics", function() {
         process.env.__OW_ACTION_NAME = "/namespace/package/action";
         process.env.__OW_NAMESPACE = "namespace";
         process.env.__OW_ACTIVATION_ID = "activationId";
+        process.env.__OW_DEADLINE = Date.now() + 60000;
     })
 
     it("constructor and all methods should be lenient and accept empty argument lists", async function() {
         let metrics = new AssetComputeMetrics();
         assert.ok(metrics);
+
         await metrics.sendMetrics();
         await metrics.sendErrorMetrics();
         await metrics.sendClientErrorMetrics();
         await metrics.handleError();
+        metrics.activationFinished();
 
         metrics = new AssetComputeMetrics({});
         assert.ok(metrics);
+
         await metrics.sendMetrics();
         await metrics.sendErrorMetrics();
         await metrics.sendClientErrorMetrics();
         await metrics.handleError();
+        metrics.activationFinished();
     });
 
     it("sendMetrics", async function() {
@@ -106,8 +112,10 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("sendMetrics - No Source Object", async function() {
@@ -131,12 +139,15 @@ describe("AssetComputeMetrics", function() {
             package: "package",
             actionName: "action",
             orgId: "orgId",
-            clientId: "clientId"
+            clientId: "clientId",
+            timestamp: /\d+/
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
+
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("sendMetrics - Source Object empty", async function() {
@@ -161,12 +172,15 @@ describe("AssetComputeMetrics", function() {
             package: "package",
             actionName: "action",
             orgId: "orgId",
-            clientId: "clientId"
+            clientId: "clientId",
+            timestamp: /\d+/
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(params);
+
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("sendErrorMetrics", async function() {
@@ -178,8 +192,10 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
         await metrics.sendErrorMetrics("location", "message", { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("sendClientErrorMetrics", async function() {
@@ -191,8 +207,10 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
         await metrics.sendClientErrorMetrics(Reason.SourceCorrupt, "message", { test: "value" });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("handleError - new Error", async function() {
@@ -204,13 +222,15 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.handleError(new Error("message"), {
+
+        await metrics.handleError(new Error("message"), {
             location: "location",
             metrics: {
                 test: "value"
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("handleError - new HTTP Error", async function() {
@@ -223,15 +243,17 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
         const httpError = new Error("http message");
         httpError.statusCode = 400;
-        metrics.handleError(httpError, {
+        await metrics.handleError(httpError, {
             location: "location",
             metrics: {
                 test: "value"
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("handleError - new ClientError/SourceFormatUnsupportedError", async function() {
@@ -243,14 +265,16 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
         const httpError = new SourceFormatUnsupportedError("message");
         httpError.statusCode = 400;
-        metrics.handleError(httpError, {
+        await metrics.handleError(httpError, {
             metrics: {
                 test: "value"
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("handleError - new GenericError", async function() {
@@ -262,12 +286,14 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.handleError(new GenericError("message", "location"), {
+
+        await metrics.handleError(new GenericError("message", "location"), {
             metrics: {
                 test: "value"
             }
         });
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("handleError - default location", async function() {
@@ -278,8 +304,9 @@ describe("AssetComputeMetrics", function() {
         });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.handleError(new GenericError("message"));
+        await metrics.handleError(new GenericError("message"));
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
 
     it("handleError - missing __OW_ACTION_NAME", async function() {
@@ -287,15 +314,59 @@ describe("AssetComputeMetrics", function() {
         const nockSendEvent = expectNewRelicInsightsEvent({
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "message",
-            actionName: "",
-            package: "",
-            location: ""
-        });
+            location: "",
+            namespace: "namespace",
+            activationId: "activationId",
+            ingestionId: "ingestionId",
+            orgId: "orgId",
+            clientId: "clientId",
+            sourceName: "AssetName.txt",
+            sourceMimetype: "mimetype",
+            sourceSize: "size",
+            timestamp: /\d+/
+        }, 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-        metrics.handleError(new GenericError("message"));
+        await metrics.handleError(new GenericError("message"));
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
     });
+
+    it("send timeout metrics", async function() {
+        let metrics;
+        try {
+            const nockSendEvent = expectNewRelicInsightsEvent({
+                eventType: "timeout"
+            }, 200, true);
+            process.env.__OW_DEADLINE = Date.now() + 5;
+            metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
+            const { promisify } = require('util');
+            const sleep = promisify(setTimeout);
+            await sleep(500);
+            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        }
+        finally {
+            metrics.activationFinished();
+        }
+    });
+
+    it("timeout metrics disabled - no `activationFinished()` call needed", async function() {
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value"
+        });
+        process.env.__OW_DEADLINE = Date.now() + 5;
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS, {
+            disableActionTimeout:true
+        });
+
+        const { promisify } = require('util');
+        const sleep = promisify(setTimeout);
+        await sleep(500);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+	});
 
     describe("negative error cases", function() {
         it("sendMetrics fails", async function() {
@@ -307,6 +378,7 @@ describe("AssetComputeMetrics", function() {
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
 
         it("auth is missing", async function() {
@@ -317,7 +389,8 @@ describe("AssetComputeMetrics", function() {
                 namespace: "namespace",
                 activationId: "activationId",
                 ingestionId: "ingestionId",
-                package: "package"
+                package: "package",
+                timestamp: /\d+/
                 // no orgId or clientId
             }, 200, false);
 
@@ -328,6 +401,7 @@ describe("AssetComputeMetrics", function() {
             });
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
 
         it("auth.accessToken is invalid", async function() {
@@ -339,7 +413,8 @@ describe("AssetComputeMetrics", function() {
                 activationId: "activationId",
                 ingestionId: "ingestionId",
                 orgId: "orgId",
-                package: "package"
+                package: "package",
+                timestamp: /\d+/
                 // no clientId because of invalid token
             }, 200, false);
 
@@ -354,6 +429,7 @@ describe("AssetComputeMetrics", function() {
             });
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
 
         it("auth.accessToken parsing throws", async function() {
@@ -374,13 +450,15 @@ describe("AssetComputeMetrics", function() {
                     package: "package",
                     sourceName: "AssetName.txt",
                     sourceMimetype: "mimetype",
-                    sourceSize: "size"
+                    sourceSize: "size",
+                    timestamp: /\d+/
                     // no clientId because of parsing error token
                 }, 200, false);
 
                 const metrics = new AssetComputeMetrics(FAKE_PARAMS);
                 await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
                 assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+                metrics.activationFinished();
 
             } finally {
                 jsonwebtoken.decode = originalDecode;
@@ -403,6 +481,7 @@ describe("AssetComputeMetrics", function() {
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
             await metrics.sendMetrics(EVENT_TYPE);
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
         });
     });
 });
