@@ -1,6 +1,6 @@
 {
   "name": "@nui/asset-compute-commons",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "index.js",
   "description": "Common utilities needed by all Asset Compute serverless actions",
   "author": {
@@ -14,8 +14,9 @@
     "url": "https://git.corp.adobe.com/nui/asset-compute-commons.git"
   },
   "dependencies": {
-    "@nui/adobe-io-events-client": "^1.0.3",
     "@nui/openwhisk-newrelic": "^1.0.1",
+    "@nui/adobe-io-console-client": "0.0.3",
+    "@nui/adobe-io-events-client": "^1.0.5",
     "ajv": "^5.0.0",
     "clone": "^2.1.2",
     "jsonwebtoken": "^8.5.1",
@@ -39,6 +40,6 @@
   },
   "scripts": {
     "pretest": "eslint ./",
-    "test": "nyc --reporter=html --reporter=text ./node_modules/.bin/mocha ./test/*"
+    "test": "nyc --reporter=html --reporter=text mocha ./test/*"
   }
 }
