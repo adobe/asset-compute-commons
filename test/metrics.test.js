@@ -118,6 +118,27 @@ describe("AssetComputeMetrics", function() {
         metrics.activationFinished();
     });
 
+    it("sendMetrics - multiple in one instance", async function() {
+        const nockSendEvent1 = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value1",
+            metric: 2
+        });
+
+        const nockSendEvent2 = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value2"
+        });
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value1", metric: 2 });
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value2" });
+        assert.ok(nockSendEvent1.isDone(), "metrics not properly sent");
+        assert.ok(nockSendEvent2.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
+    });
+
     it("sendMetrics - No Source Object", async function() {
 
         const params = {
