@@ -21,7 +21,7 @@ const assert = require('assert');
 const sinon = require('sinon');
 const rewire = require('rewire');
 
-const {AssetComputeLogUtils} = require('../lib/log-utils');
+const AssetComputeLogUtils = require('../lib/log-utils');
 const rewiredRedact = rewire('../lib/log-utils');
 
 describe("log-utils.js - Credentials redaction", function() {
