@@ -139,7 +139,6 @@ describe('registration.js - finds successful registration', function() {
             params.auth.accessToken = TEST_TOKEN;
 
             const journalFinder = function(consumer, providerId) {
-                console.log("Custom journal finder")
                 return consumer.delivery_type === "JOURNAL" &&
                     Array.isArray(consumer.events_of_interest) &&
                     consumer.events_of_interest.some(e => e.provider === providerId);
@@ -148,6 +147,7 @@ describe('registration.js - finds successful registration', function() {
             const registration = new AssetComputeRegistration(params);
             await registration.getJournal(journalFinder);
         } catch(err){
+            console.log(err);
             assert.fail("Registration check should have worked");
         }
     });
@@ -344,7 +344,6 @@ describe('registration.js - handles missing registrations (no cache)', function(
             await registration.getJournal(42);
             assert.fail("Registration check should not have worked");
         } catch(err){
-            console.log(err);
             assert.ok(err instanceof ArgumentError);
             assert.ok(err.message.includes("is not a function"));
         }
@@ -575,10 +574,60 @@ describe('registration.js - handles missing registrations (no cache)', function(
 
             assert.fail("Registration check should not have worked");
         } catch(err){
-            console.log(err);
             assert.ok(err.message, "Unknown custom error (from unit test)");
         }
 
         delete process.env.NUI_UNIT_TEST_MODE;
+    });
+
+    it("handles not having registered consumers", async function (){
+        nock.cleanAll();
+        nock('https://api.adobe.io')
+            .get('/console/organizations')
+            .reply(200,
+                [{
+                    "id": TEST_CONSUMER_ID,
+                    "code": TEST_ORG,
+                    "name": "Project Nui",
+                    "description": null,
+                    "type": "entp"
+                }]
+            );
+        nock('https://api.adobe.io')
+            .get(`/console/organizations/${TEST_CONSUMER_ID}/integrations`)
+            .reply(200,
+                [{
+                    "id": TEST_CONSUMER_ID,
+                    "code": TEST_ORG,
+                    "name": "Project Nui",
+                    "description": null,
+                    "type": "entp"
+                }]
+            );
+        nock('https://api.adobe.io')
+            .get('/console/organizations/105979/integrations?size=50&page=0')
+            .reply(200,
+                { content: [{
+                        apiKey: TEST_CLIENT_ID,
+                        id: TEST_CONSUMER_ID,
+                        status: "status",
+                        name: "Project Nui",
+                        description: null
+                    }]
+                }
+            );
+        nock('https://api.adobe.io')
+            .get(`/events/organizations/${TEST_CONSUMER_ID}/integrations/${TEST_CONSUMER_ID}/registrations`)
+            .reply(404);
+
+        const params = {};
+        params.clientId = TEST_CLIENT_ID;
+        params.auth = {};
+        params.auth.orgId = TEST_ORG;
+        params.auth.accessToken = TEST_TOKEN;
+    
+        const registration = new AssetComputeRegistration(params);
+        const res = await registration.getJournal();
+        assert.equal(res, null);
     });
 });
