@@ -41,6 +41,10 @@ const FAKE_PARAMS = {
     auth: {
         orgId: "orgId",
         accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+    },
+    internal: {
+        clientName: "fakeClient",
+        requestId: '1234567'
     }
 };
 
@@ -55,7 +59,9 @@ const EXPECTED_METRICS = {
     sourceName: "AssetName.txt",
     sourceMimetype: "mimetype",
     sourceSize: "size",
-    timestamp: /\d+/
+    timestamp: /\d+/,
+    clientName: "fakeClient",
+    requestId: '1234567'
 };
 
 function gunzip(body) {
@@ -344,7 +350,9 @@ describe("AssetComputeMetrics", function() {
             sourceName: "AssetName.txt",
             sourceMimetype: "mimetype",
             sourceSize: "size",
-            timestamp: /\d+/
+            timestamp: /\d+/,
+            clientName: "fakeClient",
+            requestId: '1234567'
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
@@ -397,6 +405,34 @@ describe("AssetComputeMetrics", function() {
             }, 500);
 
             const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+            await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
+        });
+
+        it("internal metrics missing", async function() {
+            const nockSendEvent = expectNewRelicInsightsEvent({
+                eventType: EVENT_TYPE,
+                test: "value",
+                actionName: "action",
+                namespace: "namespace",
+                activationId: "activationId",
+                ingestionId: "ingestionId",
+                package: "package",
+                timestamp: /\d+/,
+                orgId: "orgId",
+                clientId: "clientId"
+            }, 200, false);
+
+            const metrics = new AssetComputeMetrics({
+                newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+                newRelicApiKey: NR_FAKE_API_KEY,
+                ingestionId: "ingestionId",
+                auth: {
+                    orgId: "orgId",
+                    accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+                }
+            });
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
             metrics.activationFinished();
@@ -472,7 +508,9 @@ describe("AssetComputeMetrics", function() {
                     sourceName: "AssetName.txt",
                     sourceMimetype: "mimetype",
                     sourceSize: "size",
-                    timestamp: /\d+/
+                    timestamp: /\d+/,
+                    clientName: "fakeClient",
+                    requestId: '1234567'
                     // no clientId because of parsing error token
                 }, 200, false);
 
