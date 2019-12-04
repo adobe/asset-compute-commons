@@ -32,7 +32,7 @@ const EVENT_TYPE = "myevent";
 const FAKE_PARAMS = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
-    ingestionId: "ingestionId",
+    requestId:"requestId",
     source: {
         name: "AssetName.txt",
         mimetype: "mimetype",
@@ -40,11 +40,8 @@ const FAKE_PARAMS = {
     },
     auth: {
         orgId: "orgId",
-        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
-    },
-    internal: {
-        clientName: "fakeClient",
-        requestId: '1234567'
+        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
+        appName:"appName"
     }
 };
 
@@ -52,7 +49,6 @@ const EXPECTED_METRICS = {
     actionName: "action",
     namespace: "namespace",
     activationId: "activationId",
-    ingestionId: "ingestionId",
     orgId: "orgId",
     clientId: "clientId",
     package: "package",
@@ -60,8 +56,8 @@ const EXPECTED_METRICS = {
     sourceMimetype: "mimetype",
     sourceSize: "size",
     timestamp: /\d+/,
-    clientName: "fakeClient",
-    requestId: '1234567'
+    appName: "appName",
+    requestId: "requestId"
 };
 
 function gunzip(body) {
@@ -344,15 +340,14 @@ describe("AssetComputeMetrics", function() {
             location: "",
             namespace: "namespace",
             activationId: "activationId",
-            ingestionId: "ingestionId",
             orgId: "orgId",
             clientId: "clientId",
             sourceName: "AssetName.txt",
             sourceMimetype: "mimetype",
             sourceSize: "size",
             timestamp: /\d+/,
-            clientName: "fakeClient",
-            requestId: '1234567'
+            appName: "appName",
+            requestId: "requestId"
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
@@ -502,15 +497,14 @@ describe("AssetComputeMetrics", function() {
                     actionName: "action",
                     namespace: "namespace",
                     activationId: "activationId",
-                    ingestionId: "ingestionId",
                     orgId: "orgId",
                     package: "package",
                     sourceName: "AssetName.txt",
                     sourceMimetype: "mimetype",
                     sourceSize: "size",
                     timestamp: /\d+/,
-                    clientName: "fakeClient",
-                    requestId: '1234567'
+                    appName: "appName",
+                    requestId: "requestId"
                     // no clientId because of parsing error token
                 }, 200, false);
 

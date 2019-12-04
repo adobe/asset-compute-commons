@@ -31,17 +31,18 @@ const NR_FAKE_API_KEY = "new-relic-api-key";
 const FAKE_PARAMS = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
-    ingestionId: "ingestionId",
+    requestId:"requestId",
     auth: {
         orgId: "orgId",
-        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
+        appName:"appName"
     }
 };
 
 const FAKE_PARAMS_NO_AUTH = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
-    ingestionId: "ingestionId"
+    requestId:"requestId",
 };
 
 describe("AssetComputeEvents", function() {
@@ -93,7 +94,7 @@ describe("AssetComputeEvents", function() {
         assert.deepStrictEqual(writtenEvent, {
             type: "my_event",
             test: "value",
-            requestId: "ingestionId"
+            requestId: "requestId"
         });
 
         await events.sendEvent("my_event", {test: "value2"});
@@ -102,7 +103,7 @@ describe("AssetComputeEvents", function() {
         assert.deepStrictEqual(writtenEvent2, {
             type: "my_event",
             test: "value2",
-            requestId: "ingestionId"
+            requestId: "requestId"
         });
     });
 
@@ -132,7 +133,7 @@ describe("AssetComputeEvents", function() {
                 event: {
                     type: "my_event",
                     test: "value",
-                    requestId: "ingestionId"
+                    requestId: "requestId"
                 }
             })
             .reply(200, {});
