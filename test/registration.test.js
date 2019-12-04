@@ -108,10 +108,11 @@ describe('registration.js - finds successful registration', function() {
 
     it('finds an integration', async function() {
         const params = {};
-        params.clientId = TEST_CLIENT_ID;
+        
         params.auth = {};
         params.auth.orgId = TEST_ORG;
         params.auth.accessToken = TEST_TOKEN;
+        params.auth.clientId = TEST_CLIENT_ID;
 
         const registration = new AssetComputeRegistration(params);
         await registration.getJournal();
@@ -120,10 +121,11 @@ describe('registration.js - finds successful registration', function() {
 
     it('finds an integration (cached)', async function() {
         const params = {};
-        params.clientId = TEST_CLIENT_ID;
+        
         params.auth = {};
         params.auth.orgId = TEST_ORG;
         params.auth.accessToken = TEST_TOKEN;
+        params.auth.clientId = TEST_CLIENT_ID;
 
         const registration = new AssetComputeRegistration(params);
         await registration.getJournal();
@@ -133,10 +135,11 @@ describe('registration.js - finds successful registration', function() {
     it('finds an integration when given custom journal finder function', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
             params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             const journalFinder = function(consumer, providerId) {
                 return consumer.delivery_type === "JOURNAL" &&
@@ -155,10 +158,11 @@ describe('registration.js - finds successful registration', function() {
     it('finds a journal (orgId in different place)', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
-            params.orgId = TEST_ORG;
+            params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             const registration = new AssetComputeRegistration(params);
             await registration.getJournal();
@@ -172,10 +176,11 @@ describe('registration.js - finds successful registration', function() {
         
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
-            params.orgId = TEST_ORG;
+            params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             const registration = new AssetComputeRegistration(params);
             registration.integration =  {
@@ -194,10 +199,31 @@ describe('registration.js - finds successful registration', function() {
     it('finds an integration, then finds a journal', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
-            params.orgId = TEST_ORG;
+            params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
+
+            const registration = new AssetComputeRegistration(params);
+
+            await registration.getIntegrationDetails();
+            await registration.getJournal();
+        } catch(err){
+            console.log(err);
+            assert.fail("Registration check should have worked");
+        }
+    });
+
+    it('finds an integration, then finds a journal (legacy headers)', async function() {
+        try{
+            const params = {};
+            
+            params.auth = {};
+            params.auth.accessToken = TEST_TOKEN;
+
+            params.orgId = TEST_ORG;
+            params.clientId = TEST_CLIENT_ID;
 
             const registration = new AssetComputeRegistration(params);
 
@@ -212,10 +238,11 @@ describe('registration.js - finds successful registration', function() {
     it('finds an integration, sets it, then finds a journal', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
-            params.orgId = TEST_ORG;
+            params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             const registration = new AssetComputeRegistration(params);
 
@@ -231,9 +258,10 @@ describe('registration.js - finds successful registration', function() {
     it('throws if auth token is missing', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
-            params.orgId = TEST_ORG;
+            params.auth.orgId = TEST_ORG;
+            params.auth.clientId = TEST_CLIENT_ID;
             //params.auth.accessToken = TEST_TOKEN;
 
             new AssetComputeRegistration(params);
@@ -251,7 +279,7 @@ describe('registration.js - finds successful registration', function() {
             const params = {};
             //params.clientId = TEST_CLIENT_ID;
             params.auth = {};
-            params.orgId = TEST_ORG;
+            params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
 
             new AssetComputeRegistration(params);
@@ -267,10 +295,11 @@ describe('registration.js - finds successful registration', function() {
     it('throws if auth token is not formed properly', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
-            params.orgId = TEST_ORG;
+            params.auth.orgId = TEST_ORG;
             params.auth.accessToken = "wrongly formed token";
+            params.auth.clientId = TEST_CLIENT_ID;
 
             new AssetComputeRegistration(params);
 
@@ -285,10 +314,11 @@ describe('registration.js - finds successful registration', function() {
     it('throws if auth is missing', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
-            //params.auth = {};
-            params.orgId = TEST_ORG;
+            
+            params.auth = {};
+            params.auth.orgId = TEST_ORG;
             //params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             new AssetComputeRegistration(params);
 
@@ -303,10 +333,11 @@ describe('registration.js - finds successful registration', function() {
     it('throws if orgId is missing', async function() {
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
-            //params.orgId = TEST_ORG;
+            //params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             new AssetComputeRegistration(params);
 
@@ -335,10 +366,11 @@ describe('registration.js - handles missing registrations (no cache)', function(
 
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
             params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             const registration = new AssetComputeRegistration(params);
             await registration.getJournal(42);
@@ -362,10 +394,11 @@ describe('registration.js - handles missing registrations (no cache)', function(
             );
 
         const params = {};
-        params.clientId = TEST_CLIENT_ID;
+        
         params.auth = {};
         params.auth.orgId = TEST_ORG;
         params.auth.accessToken = TEST_TOKEN;
+        params.auth.clientId = TEST_CLIENT_ID;
 
         const registration = new AssetComputeRegistration(params);
         const res = await registration.getJournal();
@@ -398,10 +431,11 @@ describe('registration.js - handles missing registrations (no cache)', function(
             
 
         const params = {};
-        params.clientId = TEST_CLIENT_ID;
+        
         params.auth = {};
         params.auth.orgId = TEST_ORG;
         params.auth.accessToken = TEST_TOKEN;
+        params.auth.clientId = TEST_CLIENT_ID;
 
         const registration = new AssetComputeRegistration(params);
         const res = await registration.getJournal();
@@ -475,10 +509,11 @@ describe('registration.js - handles missing registrations (no cache)', function(
         ]);
 
         const params = {};
-        params.clientId = TEST_CLIENT_ID;
+        
         params.auth = {};
         params.auth.orgId = TEST_ORG;
         params.auth.accessToken = TEST_TOKEN;
+        params.auth.clientId = TEST_CLIENT_ID;
 
         const failingJournalFinder = function(consumer) {
             console.log("Custom journal finder")
@@ -560,10 +595,11 @@ describe('registration.js - handles missing registrations (no cache)', function(
 
         try{
             const params = {};
-            params.clientId = TEST_CLIENT_ID;
+            
             params.auth = {};
             params.auth.orgId = TEST_ORG;
             params.auth.accessToken = TEST_TOKEN;
+            params.auth.clientId = TEST_CLIENT_ID;
 
             const journalFinder = function() {
                 throw new Error("Unknown custom error (from unit test)");
@@ -621,10 +657,11 @@ describe('registration.js - handles missing registrations (no cache)', function(
             .reply(404);
 
         const params = {};
-        params.clientId = TEST_CLIENT_ID;
+        
         params.auth = {};
         params.auth.orgId = TEST_ORG;
         params.auth.accessToken = TEST_TOKEN;
+        params.auth.clientId = TEST_CLIENT_ID;
     
         const registration = new AssetComputeRegistration(params);
         const res = await registration.getJournal();
