@@ -28,20 +28,23 @@ const NR_FAKE_BASE_URL = "http://newrelic.com";
 const NR_FAKE_EVENTS_PATH = "/events";
 const NR_FAKE_API_KEY = "new-relic-api-key";
 
+
 const FAKE_PARAMS = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
-    ingestionId: "ingestionId",
+    requestId:"requestId",
     auth: {
         orgId: "orgId",
-        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+        clientId: "clientId",
+        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
+        appName:"appName"
     }
-};
+}
 
 const FAKE_PARAMS_NO_AUTH = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
-    ingestionId: "ingestionId"
+    requestId:"requestId",
 };
 
 describe("AssetComputeEvents", function() {
@@ -60,25 +63,11 @@ describe("AssetComputeEvents", function() {
         assert.equal(events.getProviderId(), "asset_compute_orgId_clientId");
     });
 
-    it("getProviderId - Invalid jwt", function() {
-        const params = {
-            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
-            newRelicApiKey: NR_FAKE_API_KEY,
-            ingestionId: "ingestionId",
-            auth: {
-                orgId: "orgId",
-                accessToken: "accessToken"
-            }
-        };
-
-        assert.throws(
-            function () {
-                new AssetComputeEvents(params);
-            },
-            Error,
-            "Error: invalid accessToken"
-        );
+    it("getProviderId - clientId in auth", function() {
+        const events = new AssetComputeEvents(FAKE_PARAMS);
+        assert.equal(events.getProviderId(), "asset_compute_orgId_clientId");
     });
+
 
     it("sendEvent - file system", async function() {
         const fsEventDir = tmp.dirSync().name;
@@ -93,7 +82,7 @@ describe("AssetComputeEvents", function() {
         assert.deepStrictEqual(writtenEvent, {
             type: "my_event",
             test: "value",
-            requestId: "ingestionId"
+            requestId: "requestId"
         });
 
         await events.sendEvent("my_event", {test: "value2"});
@@ -102,7 +91,7 @@ describe("AssetComputeEvents", function() {
         assert.deepStrictEqual(writtenEvent2, {
             type: "my_event",
             test: "value2",
-            requestId: "ingestionId"
+            requestId: "requestId"
         });
     });
 
@@ -132,7 +121,7 @@ describe("AssetComputeEvents", function() {
                 event: {
                     type: "my_event",
                     test: "value",
-                    requestId: "ingestionId"
+                    requestId: "requestId"
                 }
             })
             .reply(200, {});

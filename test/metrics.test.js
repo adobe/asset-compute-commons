@@ -20,7 +20,6 @@
 const assert = require('assert');
 const nock = require('nock');
 const zlib = require('zlib');
-const jsonwebtoken = require('jsonwebtoken');
 const AssetComputeMetrics = require('../lib/metrics');
 const { Reason, SourceFormatUnsupportedError, GenericError } = require('../lib/errors');
 
@@ -32,7 +31,7 @@ const EVENT_TYPE = "myevent";
 const FAKE_PARAMS = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
-    ingestionId: "ingestionId",
+    requestId:"requestId",
     source: {
         name: "AssetName.txt",
         mimetype: "mimetype",
@@ -40,7 +39,8 @@ const FAKE_PARAMS = {
     },
     auth: {
         orgId: "orgId",
-        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+        clientId: "clientId",
+        appName:"appName"
     }
 };
 
@@ -48,14 +48,15 @@ const EXPECTED_METRICS = {
     actionName: "action",
     namespace: "namespace",
     activationId: "activationId",
-    ingestionId: "ingestionId",
     orgId: "orgId",
     clientId: "clientId",
     package: "package",
     sourceName: "AssetName.txt",
     sourceMimetype: "mimetype",
     sourceSize: "size",
-    timestamp: /\d+/
+    timestamp: /\d+/,
+    appName: "appName",
+    requestId: "requestId"
 };
 
 function gunzip(body) {
@@ -144,10 +145,10 @@ describe("AssetComputeMetrics", function() {
         const params = {
             newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
             newRelicApiKey: NR_FAKE_API_KEY,
-            ingestionId: "ingestionId",
+            requestId: "requestId",
             auth: {
                 orgId: "orgId",
-                accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+                clientId: "clientId"
             }
         };
 
@@ -155,7 +156,7 @@ describe("AssetComputeMetrics", function() {
             eventType: EVENT_TYPE,
             test: "value",
             activationId: "activationId",
-            ingestionId: "ingestionId",
+            requestId: "requestId",
             namespace: "namespace",
             package: "package",
             actionName: "action",
@@ -176,11 +177,11 @@ describe("AssetComputeMetrics", function() {
         const params = {
             newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
             newRelicApiKey: NR_FAKE_API_KEY,
-            ingestionId: "ingestionId",
+            requestId: "requestId",
             source: {},
             auth: {
                 orgId: "orgId",
-                accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key")
+                clientId: "clientId"
             }
         };
 
@@ -188,7 +189,7 @@ describe("AssetComputeMetrics", function() {
             eventType: EVENT_TYPE,
             test: "value",
             activationId: "activationId",
-            ingestionId: "ingestionId",
+            requestId: "requestId",
             namespace: "namespace",
             package: "package",
             actionName: "action",
@@ -338,13 +339,14 @@ describe("AssetComputeMetrics", function() {
             location: "",
             namespace: "namespace",
             activationId: "activationId",
-            ingestionId: "ingestionId",
             orgId: "orgId",
             clientId: "clientId",
             sourceName: "AssetName.txt",
             sourceMimetype: "mimetype",
             sourceSize: "size",
-            timestamp: /\d+/
+            timestamp: /\d+/,
+            appName: "appName",
+            requestId: "requestId"
         }, 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
@@ -402,6 +404,34 @@ describe("AssetComputeMetrics", function() {
             metrics.activationFinished();
         });
 
+        it("internal metrics missing", async function() {
+            const nockSendEvent = expectNewRelicInsightsEvent({
+                eventType: EVENT_TYPE,
+                test: "value",
+                actionName: "action",
+                namespace: "namespace",
+                activationId: "activationId",
+                requestId: "requestId",
+                package: "package",
+                timestamp: /\d+/,
+                orgId: "orgId",
+                clientId: "clientId"
+            }, 200, false);
+
+            const metrics = new AssetComputeMetrics({
+                newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+                newRelicApiKey: NR_FAKE_API_KEY,
+                requestId: "requestId",
+                auth: {
+                    orgId: "orgId",
+                    clientId: "clientId"
+                }
+            });
+            await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+            metrics.activationFinished();
+        });
+
         it("auth is missing", async function() {
             const nockSendEvent = expectNewRelicInsightsEvent({
                 eventType: EVENT_TYPE,
@@ -409,7 +439,7 @@ describe("AssetComputeMetrics", function() {
                 actionName: "action",
                 namespace: "namespace",
                 activationId: "activationId",
-                ingestionId: "ingestionId",
+                requestId: "requestId",
                 package: "package",
                 timestamp: /\d+/
                 // no orgId or clientId
@@ -418,73 +448,13 @@ describe("AssetComputeMetrics", function() {
             const metrics = new AssetComputeMetrics({
                 newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
                 newRelicApiKey: NR_FAKE_API_KEY,
-                ingestionId: "ingestionId"
+                requestId: "requestId"
             });
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
             metrics.activationFinished();
         });
 
-        it("auth.accessToken is invalid", async function() {
-            const nockSendEvent = expectNewRelicInsightsEvent({
-                eventType: EVENT_TYPE,
-                test: "value",
-                actionName: "action",
-                namespace: "namespace",
-                activationId: "activationId",
-                ingestionId: "ingestionId",
-                orgId: "orgId",
-                package: "package",
-                timestamp: /\d+/
-                // no clientId because of invalid token
-            }, 200, false);
-
-            const metrics = new AssetComputeMetrics({
-                newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
-                newRelicApiKey: NR_FAKE_API_KEY,
-                ingestionId: "ingestionId",
-                auth: {
-                    orgId: "orgId",
-                    accessToken: "INVALID-TOKEN"
-                }
-            });
-            await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
-            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-            metrics.activationFinished();
-        });
-
-        it("auth.accessToken parsing throws", async function() {
-            const originalDecode = jsonwebtoken.decode;
-            jsonwebtoken.decode = function() {
-                throw new Error("Parsing error");
-            };
-
-            try {
-                const nockSendEvent = expectNewRelicInsightsEvent({
-                    eventType: EVENT_TYPE,
-                    test: "value",
-                    actionName: "action",
-                    namespace: "namespace",
-                    activationId: "activationId",
-                    ingestionId: "ingestionId",
-                    orgId: "orgId",
-                    package: "package",
-                    sourceName: "AssetName.txt",
-                    sourceMimetype: "mimetype",
-                    sourceSize: "size",
-                    timestamp: /\d+/
-                    // no clientId because of parsing error token
-                }, 200, false);
-
-                const metrics = new AssetComputeMetrics(FAKE_PARAMS);
-                await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
-                assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-                metrics.activationFinished();
-
-            } finally {
-                jsonwebtoken.decode = originalDecode;
-            }
-        });
 
         it("new relic request fails", async function() {
             const nockSendEvent = nock(NR_FAKE_BASE_URL)
