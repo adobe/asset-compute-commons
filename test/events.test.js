@@ -39,6 +39,18 @@ const FAKE_PARAMS = {
     }
 };
 
+const FAKE_PARAMS_CLIENTID = {
+    newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+    newRelicApiKey: NR_FAKE_API_KEY,
+    requestId:"requestId",
+    auth: {
+        orgId: "orgId",
+        clientId: "clientId",
+        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
+        appName:"appName"
+    }
+}
+
 const FAKE_PARAMS_NO_AUTH = {
     newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
     newRelicApiKey: NR_FAKE_API_KEY,
@@ -58,6 +70,11 @@ describe("AssetComputeEvents", function() {
 
     it("getProviderId", function() {
         const events = new AssetComputeEvents(FAKE_PARAMS);
+        assert.equal(events.getProviderId(), "asset_compute_orgId_clientId");
+    });
+
+    it("getProviderId - clientId in auth", function() {
+        const events = new AssetComputeEvents(FAKE_PARAMS_CLIENTID);
         assert.equal(events.getProviderId(), "asset_compute_orgId_clientId");
     });
 
