@@ -25,6 +25,36 @@ const AssetComputeLogUtils = require('../lib/log-utils');
 const rewiredRedact = rewire('../lib/log-utils');
 
 describe("log-utils.js - Credentials redaction", function() {
+    it("redacts fields does not throw when object is null", function() {
+        const testObj = null;
+
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        assert.equal(redactedObject, null);
+    });
+
+    it("redacts fields does not throw when object is undefined", function() {
+        const testObj = undefined;
+
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [ 
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+        
+        const redactedObject = redact(testObj, options, false);
+        assert.equal(redactedObject, undefined);
+    });
+
     it("redacts fields", function() {
         const testObj = {};
         testObj.newRelicApiKey = "newRelicApiKey";
