@@ -106,7 +106,6 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const res = AssetComputeLogUtils.redactUrl(testHeaders);
         assert.equal(res["x-ms-copy-source"][0], "https://this.test.me:8080");
-        console.log(res);
     });
 
     it("logs redacted urls only (whitebox)", function () {
