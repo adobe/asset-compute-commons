@@ -78,6 +78,80 @@ describe("log-utils.js - Credentials redaction", function() {
         assert.equal(redactedObject.noRedact, "no-redact");
     });
 
+    it("redacts urls from header fields", function () {
+        const testHeaders = { 
+            'content-length': [ '1290938' ], 
+            'content-type': [ 'image/jpeg' ], 
+            'last-modified': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
+            'accept-ranges': [ 'bytes' ], 
+            'etag': [ '"0x001234567"' ], 
+            'server': [ 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0' ], 
+            'x-ms-request-id': [ 'req-id' ], 
+            'x-ms-version': [ '2019-02-02' ], 
+            'x-ms-creation-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
+            'x-ms-lease-status': [ 'unlocked' ], 
+            'x-ms-lease-state': [ 'available' ], 
+            'x-ms-blob-type': [ 'BlockBlob' ], 
+            'x-ms-copy-id': [ 'copy-id' ], 
+            'x-ms-copy-source': [ 'https://this.test.me:8080/this-is-a-test/file.png' ], 
+            'x-ms-copy-status': [ 'success' ], 
+            'x-ms-copy-progress': [ '1290938/1290938' ], 
+            'x-ms-copy-completion-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
+            'x-ms-server-encrypted': [ 'true' ], 
+            'x-ms-access-tier': [ 'Hot' ], 
+            'x-ms-access-tier-inferred': [ 'true' ], 
+            'date': [ 'Mon, 09 Dec 2019 10:19:32 GMT' ], 
+            'connection': [ 'close' ] 
+        };
+
+        const res = AssetComputeLogUtils.redactUrl(testHeaders);
+        assert.equal(res["x-ms-copy-source"][0], "https://this.test.me:8080");
+        console.log(res);
+    });
+
+    it("logs redacted urls only (whitebox)", function () {
+        const testHeaders = { 
+            'content-length': [ '1290938' ], 
+            'content-type': [ 'image/jpeg' ], 
+            'last-modified': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
+            'accept-ranges': [ 'bytes' ], 
+            'etag': [ '"0x001234567"' ], 
+            'server': [ 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0' ], 
+            'x-ms-request-id': [ 'req-id' ], 
+            'x-ms-version': [ '2019-02-02' ], 
+            'x-ms-creation-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
+            'x-ms-lease-status': [ 'unlocked' ], 
+            'x-ms-lease-state': [ 'available' ], 
+            'x-ms-blob-type': [ 'BlockBlob' ], 
+            'x-ms-copy-id': [ 'copy-id' ], 
+            'x-ms-copy-source': [ 'https://this.test.me:8080/this-is-a-test/file.png' ], 
+            'x-ms-copy-status': [ 'success' ], 
+            'x-ms-copy-progress': [ '1290938/1290938' ], 
+            'x-ms-copy-completion-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
+            'x-ms-server-encrypted': [ 'true' ], 
+            'x-ms-access-tier': [ 'Hot' ], 
+            'x-ms-access-tier-inferred': [ 'true' ], 
+            'date': [ 'Mon, 09 Dec 2019 10:19:32 GMT' ], 
+            'connection': [ 'close' ] 
+        };
+
+        const credsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const credRedactFn = rewiredRedact.__get__("redactField");
+        const urlFieldsToRedact = rewiredRedact.__get__("URL_FIELDS_TO_REDACT");
+        const urlRedactFn = rewiredRedact.__get__("redactUrls");
+        const redact = rewiredRedact.__get__("redact");
+
+        const rules = [
+            { redactionList: credsToRedact, redactionFn: credRedactFn },
+            { redactionList: urlFieldsToRedact, redactionFn: urlRedactFn }
+        ];
+
+        const clonedObj = redact(testHeaders, rules, false);
+
+        assert.equal(clonedObj["x-ms-copy-source"][0], "https://this.test.me:8080");
+    });
+
+
     it("redacts nested fields (all fields in one level)", function() {
         const parentObj = {};
         parentObj.noRedact = "no-redact-parent";
