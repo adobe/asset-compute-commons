@@ -305,9 +305,9 @@ describe('registration.js - finds successful registration', function() {
 
             assert.fail("Registration check should not have worked");
         } catch(err){
-            console.log(err);
+            console.log(err.message);
             assert.ok(err instanceof ClientError);
-            assert.ok(err.innerError.message.includes("Cannot read property 'client_id' of null"));
+            assert.ok(err.message.includes("invalid `accessToken` and/or `orgId`"));
         }
     });
 
