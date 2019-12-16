@@ -172,6 +172,40 @@ describe("AssetComputeMetrics", function() {
         metrics.activationFinished();
     });
 
+    it("sendMetrics - No Source Object at initialization, source metadata defined at time of send", async function() {
+
+        const params = {
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            requestId: "requestId",
+            auth: {
+                orgId: "orgId",
+                clientId: "clientId"
+            },
+            source: 'test'
+        };
+
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value",
+            activationId: "activationId",
+            requestId: "requestId",
+            namespace: "namespace",
+            package: "package",
+            actionName: "action",
+            orgId: "orgId",
+            clientId: "clientId",
+            timestamp: /\d+/,
+            sourceName: 'sourceName',
+        }, 200, false);
+
+        const metrics = new AssetComputeMetrics(params);
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value", sourceName:'sourceName' });
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
+        metrics.activationFinished();
+    });
+
     it("sendMetrics - Source Object empty", async function() {
 
         const params = {
