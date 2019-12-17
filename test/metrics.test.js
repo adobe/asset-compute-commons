@@ -147,6 +147,19 @@ describe("AssetComputeMetrics", function() {
         assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
+    it("sendMetrics - no activation metrics", async function() {
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value"
+        });
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        await metrics.activationFinished({}, false);
+        assert.ok(nock.isDone(), "metrics not properly sent");
+    });
+
     it("sendMetrics - multiple in one instance", async function() {
         expectNewRelicInsightsEvent({
             eventType: EVENT_TYPE,
