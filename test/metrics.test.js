@@ -44,6 +44,17 @@ const FAKE_PARAMS = {
     }
 };
 
+const FAKE_PARAMS_NO_SOURCE = {
+    newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+    newRelicApiKey: NR_FAKE_API_KEY,
+    requestId: "requestId",
+    auth: {
+        orgId: "orgId",
+        clientId: "clientId",
+        appName: "appName"
+    }
+};
+
 const EXPECTED_METRICS = {
     actionName: "action",
     namespace: "namespace",
@@ -54,6 +65,18 @@ const EXPECTED_METRICS = {
     sourceName: "AssetName.txt",
     sourceMimetype: "mimetype",
     sourceSize: "size",
+    timestamp: /\d+/,
+    appName: "appName",
+    requestId: "requestId"
+};
+
+const EXPECTED_METRICS_NO_SOURCE = {
+    actionName: "action",
+    namespace: "namespace",
+    activationId: "activationId",
+    orgId: "orgId",
+    clientId: "clientId",
+    package: "package",
     timestamp: /\d+/,
     appName: "appName",
     requestId: "requestId"
@@ -84,6 +107,7 @@ describe("AssetComputeMetrics", function() {
         process.env.__OW_NAMESPACE = "namespace";
         process.env.__OW_ACTIVATION_ID = "activationId";
         process.env.__OW_DEADLINE = Date.now() + 60000;
+        nock.cleanAll();
     })
 
     it("constructor and all methods should be lenient and accept empty argument lists", async function() {
@@ -107,7 +131,42 @@ describe("AssetComputeMetrics", function() {
     });
 
     it("sendMetrics", async function() {
-        const nockSendEvent = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value"
+        });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            test: "value"
+        });
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        await metrics.activationFinished({ test: "value" });
+        assert.ok(nock.isDone(), "metrics not properly sent");
+    });
+
+    it("sendMetrics - does nothing on multiple calls to `activationFinished()`", async function() {
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value"
+        });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            test: "value"
+        });
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        await metrics.activationFinished({ test: "value" });
+        await metrics.activationFinished({ test: "value2" }); // should only send activation metrics once
+        assert.ok(nock.isDone(), "metrics not properly sent");
+    });
+
+    it("sendMetrics - no activation metrics", async function() {
+        expectNewRelicInsightsEvent({
             eventType: EVENT_TYPE,
             test: "value"
         });
@@ -115,94 +174,61 @@ describe("AssetComputeMetrics", function() {
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished({}, false);
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("sendMetrics - multiple in one instance", async function() {
-        const nockSendEvent1 = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
             eventType: EVENT_TYPE,
             test: "value1",
             metric: 2
         });
 
-        const nockSendEvent2 = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
             eventType: EVENT_TYPE,
             test: "value2"
         });
+
+        expectNewRelicInsightsEvent({ eventType: "activation" });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
         await metrics.sendMetrics(EVENT_TYPE, { test: "value1", metric: 2 });
         await metrics.sendMetrics(EVENT_TYPE, { test: "value2" });
-        assert.ok(nockSendEvent1.isDone(), "metrics not properly sent");
-        assert.ok(nockSendEvent2.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("sendMetrics - No Source Object", async function() {
+        expectNewRelicInsightsEvent(Object.assign({}, EXPECTED_METRICS_NO_SOURCE, { eventType: "myevent" }), 200, false);
 
-        const params = {
-            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
-            newRelicApiKey: NR_FAKE_API_KEY,
-            requestId: "requestId",
-            auth: {
-                orgId: "orgId",
-                clientId: "clientId"
-            }
-        };
+        expectNewRelicInsightsEvent(Object.assign({}, EXPECTED_METRICS_NO_SOURCE, { eventType: "activation" }), 200, false);
 
-        const nockSendEvent = expectNewRelicInsightsEvent({
-            eventType: EVENT_TYPE,
-            test: "value",
-            activationId: "activationId",
-            requestId: "requestId",
-            namespace: "namespace",
-            package: "package",
-            actionName: "action",
-            orgId: "orgId",
-            clientId: "clientId",
-            timestamp: /\d+/
-        }, 200, false);
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS_NO_SOURCE);
 
-        const metrics = new AssetComputeMetrics(params);
-
-        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.sendMetrics(EVENT_TYPE);
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
-    it("sendMetrics - Source Object empty", async function() {
-
-        const params = {
-            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
-            newRelicApiKey: NR_FAKE_API_KEY,
-            requestId: "requestId",
-            source: {},
-            auth: {
-                orgId: "orgId",
-                clientId: "clientId"
-            }
-        };
-
-        const nockSendEvent = expectNewRelicInsightsEvent({
+    it("sendMetrics - No Source Object at initialization, source metadata defined at time of send", async function() {
+        expectNewRelicInsightsEvent( Object.assign( {}, EXPECTED_METRICS_NO_SOURCE, {
             eventType: EVENT_TYPE,
-            test: "value",
-            activationId: "activationId",
-            requestId: "requestId",
-            namespace: "namespace",
-            package: "package",
-            actionName: "action",
-            orgId: "orgId",
-            clientId: "clientId",
-            timestamp: /\d+/
-        }, 200, false);
+            sourceName: 'sourceName',
+            test:'value'
+        }), 200, false);
+        expectNewRelicInsightsEvent( Object.assign( {}, EXPECTED_METRICS_NO_SOURCE, {
+            eventType: 'activation'
+        }), 200, false);
 
-        const metrics = new AssetComputeMetrics(params);
+        const metrics = new AssetComputeMetrics(Object.assign({}, FAKE_PARAMS_NO_SOURCE, {
+            source: 'source'
+        }));
 
-        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value", sourceName:'sourceName' });
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("sendErrorMetrics", async function() {
@@ -236,12 +262,13 @@ describe("AssetComputeMetrics", function() {
     });
 
     it("handleError - new Error", async function() {
-        const nockSendEvent = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "message",
             location: "location",
             test: "value"
         });
+        expectNewRelicInsightsEvent({ eventType: "activation" });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -251,18 +278,19 @@ describe("AssetComputeMetrics", function() {
                 test: "value"
             }
         });
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("handleError - new HTTP Error", async function() {
-        const nockSendEvent = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "http message",
             location: "location",
             statusCode: 400,
             test: "value"
         });
+        expectNewRelicInsightsEvent({ eventType: "activation" });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -274,17 +302,18 @@ describe("AssetComputeMetrics", function() {
                 test: "value"
             }
         });
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("handleError - new ClientError/SourceFormatUnsupportedError", async function() {
-        const nockSendEvent = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
             eventType: AssetComputeMetrics.CLIENT_ERROR_EVENT_TYPE,
             message: "message",
             reason: Reason.SourceFormatUnsupported,
             test: "value"
         });
+        expectNewRelicInsightsEvent({ eventType: "activation" });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -295,17 +324,18 @@ describe("AssetComputeMetrics", function() {
                 test: "value"
             }
         });
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("handleError - new GenericError", async function() {
-        const nockSendEvent = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "message",
             location: "location",
             test: "value"
         });
+        expectNewRelicInsightsEvent({ eventType: "activation" });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -314,29 +344,27 @@ describe("AssetComputeMetrics", function() {
                 test: "value"
             }
         });
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("handleError - default location", async function() {
-        const nockSendEvent = expectNewRelicInsightsEvent({
+        expectNewRelicInsightsEvent({
             eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
             message: "message",
             location: "action" // taken from action name
         });
+        expectNewRelicInsightsEvent({ eventType: "activation" });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.handleError(new GenericError("message"));
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("handleError - missing __OW_ACTION_NAME", async function() {
         delete process.env.__OW_ACTION_NAME;
-        const nockSendEvent = expectNewRelicInsightsEvent({
-            eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
-            message: "message",
-            location: "",
+        const metrics_no_actionName = {
             namespace: "namespace",
             activationId: "activationId",
             orgId: "orgId",
@@ -347,31 +375,30 @@ describe("AssetComputeMetrics", function() {
             timestamp: /\d+/,
             appName: "appName",
             requestId: "requestId"
-        }, 200, false);
+        }
+        expectNewRelicInsightsEvent(Object.assign({
+            eventType: AssetComputeMetrics.ERROR_EVENT_TYPE,
+            message: "message",
+            location: ""
+        }, metrics_no_actionName), 200, false);
+        expectNewRelicInsightsEvent(Object.assign({ eventType: "activation" }, metrics_no_actionName), 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.handleError(new GenericError("message"));
-        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        metrics.activationFinished();
+        await metrics.activationFinished();
+        assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
     it("send timeout metrics", async function() {
-        let metrics;
-        try {
-            const nockSendEvent = expectNewRelicInsightsEvent({
-                eventType: "timeout"
-            }, 200, true);
-            process.env.__OW_DEADLINE = Date.now() + 5;
-            metrics = new AssetComputeMetrics(FAKE_PARAMS);
-
-            const { promisify } = require('util');
-            const sleep = promisify(setTimeout);
-            await sleep(500);
-            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-        }
-        finally {
-            metrics.activationFinished();
-        }
+        const nockSendEvent = expectNewRelicInsightsEvent({
+            eventType: "timeout"
+        }, 200, true);
+        process.env.__OW_DEADLINE = Date.now() + 5;
+        new AssetComputeMetrics(FAKE_PARAMS);
+        const { promisify } = require('util');
+        const sleep = promisify(setTimeout);
+        await sleep(500);
+        assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
     });
 
     it("timeout metrics disabled - no `activationFinished()` call needed", async function() {
@@ -404,46 +431,20 @@ describe("AssetComputeMetrics", function() {
             metrics.activationFinished();
         });
 
-        it("internal metrics missing", async function() {
-            const nockSendEvent = expectNewRelicInsightsEvent({
-                eventType: EVENT_TYPE,
-                test: "value",
-                actionName: "action",
-                namespace: "namespace",
-                activationId: "activationId",
-                requestId: "requestId",
-                package: "package",
-                timestamp: /\d+/,
-                orgId: "orgId",
-                clientId: "clientId"
-            }, 200, false);
-
-            const metrics = new AssetComputeMetrics({
-                newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
-                newRelicApiKey: NR_FAKE_API_KEY,
-                requestId: "requestId",
-                auth: {
-                    orgId: "orgId",
-                    clientId: "clientId"
-                }
-            });
-            await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
-            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-            metrics.activationFinished();
-        });
-
         it("auth is missing", async function() {
-            const nockSendEvent = expectNewRelicInsightsEvent({
-                eventType: EVENT_TYPE,
-                test: "value",
+            const metrics_no_auth = {
                 actionName: "action",
                 namespace: "namespace",
                 activationId: "activationId",
                 requestId: "requestId",
                 package: "package",
                 timestamp: /\d+/
-                // no orgId or clientId
-            }, 200, false);
+            }
+            expectNewRelicInsightsEvent(Object.assign({
+                eventType: EVENT_TYPE,
+                test: "value"
+            }, metrics_no_auth), 200, false);
+            expectNewRelicInsightsEvent(Object.assign({ eventType: "activation" }, metrics_no_auth), 200, false);
 
             const metrics = new AssetComputeMetrics({
                 newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
@@ -451,8 +452,8 @@ describe("AssetComputeMetrics", function() {
                 requestId: "requestId"
             });
             await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
-            assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
-            metrics.activationFinished();
+            await metrics.activationFinished();
+            assert.ok(nock.isDone(), "metrics not properly sent");
         });
 
 
