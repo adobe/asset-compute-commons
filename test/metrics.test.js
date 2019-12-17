@@ -147,6 +147,24 @@ describe("AssetComputeMetrics", function() {
         assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
+    it("sendMetrics - does nothing on multiple calls to `activationFinished()`", async function() {
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value"
+        });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            test: "value"
+        });
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        await metrics.activationFinished({ test: "value" });
+        await metrics.activationFinished({ test: "value2" }); // should only send activation metrics once
+        assert.ok(nock.isDone(), "metrics not properly sent");
+    });
+
     it("sendMetrics - no activation metrics", async function() {
         expectNewRelicInsightsEvent({
             eventType: EVENT_TYPE,
