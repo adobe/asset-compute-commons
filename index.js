@@ -22,7 +22,6 @@ const OpenwhiskActionName = require('./lib/actions');
 const AssetComputeEvents = require('./lib/events');
 const AssetComputeMetrics = require('./lib/metrics');
 const AssetComputeErrors = require('./lib/errors');
-const AssetComputeRegistration = require('./lib/registration');
 const AssetComputeLogUtils = require('./lib/log-utils');
 
 module.exports = {
@@ -30,6 +29,5 @@ module.exports = {
   AssetComputeLogUtils,
   AssetComputeEvents,
   AssetComputeMetrics,
-  AssetComputeRegistration,
   ...AssetComputeErrors
 };
