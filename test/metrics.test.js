@@ -536,3 +536,67 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
         await metrics.activationFinished({}, false);
     });
 });
+
+describe("AssetComputeMetrics wrapper", function() {
+
+    beforeEach(function() {
+        process.env.__OW_ACTION_NAME = "/namespace/package/action";
+        process.env.__OW_NAMESPACE = "namespace";
+        process.env.__OW_ACTIVATION_ID = "activationId";
+        process.env.__OW_DEADLINE = Date.now() + 60000;
+        nock.cleanAll();
+    });
+
+    it.only("actionMain wraps main", async function() {
+        nock('http://newrelic.com:80')
+        .filteringRequestBody(gunzip)
+        .matchHeader("x-insert-key", NR_FAKE_API_KEY)
+        .intercept('/events', 'POST' , {
+            eventType: 'activation',
+            timestamp: 1579656145081,
+            actionName: 'action',
+            package: 'package',
+            namespace: 'namespace',
+            activationId: 'activationId',
+            requestId: 'requestId',
+            sourceName: 'AssetName.txt',
+            sourceMimetype: 'mimetype',
+            sourceSize: 'size',
+            orgId: 'orgId',
+            appName: 'appName',
+            clientId: 'clientId'
+        })
+        .reply(200, {});
+
+        let testFunction = function(params, metrics){
+            metrics.test = "test";
+        };
+
+        const wrappedFunction = AssetComputeMetrics.actionMain(testFunction);
+        
+        //console.log('Calling the wrapped function now...');
+        const params = {
+            newRelicEventsURL: 'http://newrelic.com:80/events',
+            newRelicApiKey: NR_FAKE_API_KEY,
+            requestId:"requestId",
+            source: {
+                name: "AssetName.txt",
+                mimetype: "mimetype",
+                size: "size"
+            },
+            auth: {
+                orgId: "orgId",
+                clientId: "clientId",
+                appName:"appName"
+            }
+        };
+        await wrappedFunction(params);
+
+        console.log('________________________________');
+        console.log('Pending mocks:');
+        console.log(nock.pendingMocks());
+        console.log('________________________________');
+
+        assert.ok(nock.isDone(), "metrics not properly sent");
+    });
+});
