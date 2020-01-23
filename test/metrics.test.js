@@ -108,7 +108,7 @@ describe("AssetComputeMetrics", function() {
         process.env.__OW_ACTIVATION_ID = "activationId";
         process.env.__OW_DEADLINE = Date.now() + 60000;
         nock.cleanAll();
-    })
+    });
 
     it("constructor and all methods should be lenient and accept empty argument lists", async function() {
         let metrics = new AssetComputeMetrics();
@@ -475,5 +475,64 @@ describe("AssetComputeMetrics", function() {
             assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
             metrics.activationFinished();
         });
+    });
+});
+
+describe("AssetComputeMetrics (without NR credentials)", function() {
+    beforeEach(function() {
+        process.env.__OW_ACTION_NAME = "/namespace/package/action";
+        process.env.__OW_NAMESPACE = "namespace";
+        process.env.__OW_ACTIVATION_ID = "activationId";
+        process.env.__OW_DEADLINE = Date.now() + 60000;
+    });
+
+    it("does not hang if there are no new relic parameters", async function() {
+        let metrics = new AssetComputeMetrics({
+            newRelicEventsURL: null,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            requestId: "requestId"
+        });
+        assert.ok(metrics.NewRelic === undefined);
+        await metrics.activationFinished({}, true);
+
+        metrics = new AssetComputeMetrics({
+            newRelicEventsURL: null,
+            newRelicApiKey: null,
+            requestId: "requestId"
+        });
+        assert.ok(metrics.NewRelic === undefined);
+        await metrics.activationFinished({}, true);
+
+        metrics = new AssetComputeMetrics({
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: null,
+            requestId: "requestId"
+        });
+        assert.ok(metrics.NewRelic === undefined);
+        await metrics.activationFinished({}, true);
+
+        metrics = new AssetComputeMetrics({
+            newRelicEventsURL: null,
+            newRelicApiKey: NR_FAKE_API_KEY,
+            requestId: "requestId"
+        });
+        assert.ok(metrics.NewRelic === undefined);
+        await metrics.activationFinished({}, false);
+
+        metrics = new AssetComputeMetrics({
+            newRelicEventsURL: null,
+            newRelicApiKey: null,
+            requestId: "requestId"
+        });
+        assert.ok(metrics.NewRelic === undefined);
+        await metrics.activationFinished({}, false);
+
+        metrics = new AssetComputeMetrics({
+            newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
+            newRelicApiKey: null,
+            requestId: "requestId"
+        });
+        assert.ok(metrics.NewRelic === undefined);
+        await metrics.activationFinished({}, false);
     });
 });
