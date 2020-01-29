@@ -492,7 +492,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: NR_FAKE_API_KEY,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, true);
 
         metrics = new AssetComputeMetrics({
@@ -500,7 +499,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, true);
 
         metrics = new AssetComputeMetrics({
@@ -508,7 +506,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, true);
 
         metrics = new AssetComputeMetrics({
@@ -516,7 +513,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: NR_FAKE_API_KEY,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, false);
 
         metrics = new AssetComputeMetrics({
@@ -524,7 +520,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, false);
 
         metrics = new AssetComputeMetrics({
@@ -532,7 +527,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, false);
     });
 });
