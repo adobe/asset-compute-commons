@@ -53,146 +53,166 @@ describe("wrap", function() {
         nock.cleanAll();
     });
 
-    it('wraps an action and provides metrics', async function() {
-        expectNewRelicInsightsEvent({
-            eventType: "activation",
-            timestamp: /\d+/,
-            my: "metric"
-        });
-
-        function main(params) {
-            assert.equal(typeof params, "object");
-
-            // passed in params
-            assert.equal(params.key, "value");
-
-            // metrics from wrapper
-            assert.equal(typeof params.metrics, "object");
-
-            params.metrics.add({
+    describe("metrics", function() {
+        it('wraps an action and provides metrics', async function() {
+            expectNewRelicInsightsEvent({
+                eventType: "activation",
+                timestamp: /\d+/,
                 my: "metric"
             });
 
-            return { ok: true };
-        }
+            function main(params) {
+                assert.equal(typeof params, "object");
 
-        const finalMain = actionWrapper(main);
+                // passed in params
+                assert.equal(params.key, "value");
 
-        const params = {
-            newRelicEventsURL: NR_FAKE_URL,
-            newRelicApiKey: NR_FAKE_API_KEY,
-            key: "value"
-        };
+                // metrics from wrapper
+                assert.equal(typeof params.metrics, "object");
 
-        const result = await finalMain(params);
-        assert.equal(result.ok, true);
+                params.metrics.add({
+                    my: "metric"
+                });
 
-        assert(nock.isDone(), "did not make these requests: " + nock.pendingMocks());
-    });
+                return { ok: true };
+            }
 
-    it('metrics wrapper handles missing params', async function() {
-        function main(params) {
-            assert.equal(typeof params, "object");
+            const finalMain = actionWrapper(main);
 
-            // metrics from wrapper
-            assert.equal(typeof params.metrics, "object");
+            const params = {
+                newRelicEventsURL: NR_FAKE_URL,
+                newRelicApiKey: NR_FAKE_API_KEY,
+                key: "value"
+            };
 
-            params.metrics.add({
+            const result = await finalMain(params);
+            assert.equal(result.ok, true);
+
+            assert(nock.isDone(), "did not make these requests: " + nock.pendingMocks());
+        });
+
+        it('metrics wrapper handles missing params', async function() {
+            function main(params) {
+                assert.equal(typeof params, "object");
+
+                // metrics from wrapper
+                assert.equal(typeof params.metrics, "object");
+
+                params.metrics.add({
+                    my: "metric"
+                });
+
+                return { ok: true };
+            }
+
+            const finalMain = actionWrapper(main);
+
+            // must not throw if no params are passed in
+            const result = await finalMain();
+            assert.equal(result.ok, true);
+        });
+
+        it('metrics wrapper does not overwrite existing params.metrics', async function() {
+            expectNewRelicInsightsEvent({
+                eventType: "activation",
+                timestamp: /\d+/
+            });
+
+            function main(params) {
+                assert.equal(typeof params, "object");
+
+                // metrics from wrapper
+                assert.equal(params.metrics, "foo");
+
+                return { ok: true };
+            }
+
+            const finalMain = actionWrapper(main);
+
+            const params = {
+                newRelicEventsURL: NR_FAKE_URL,
+                newRelicApiKey: NR_FAKE_API_KEY,
+                metrics: "foo"
+            };
+
+            const result = await finalMain(params);
+            assert.equal(result.ok, true);
+
+            assert(nock.isDone(), "did not make these requests: " + nock.pendingMocks());
+        });
+
+        it('metrics wrapper catches errors', async function() {
+            expectNewRelicInsightsEvent({
+                eventType: "error",
+                timestamp: /\d+/,
+                actionName: "my-action",
+                my: "metric",
+                location: "my-action",
+                message: "broken"
+            });
+            expectNewRelicInsightsEvent({
+                eventType: "activation",
+                timestamp: /\d+/,
+                actionName: "my-action",
                 my: "metric"
             });
 
-            return { ok: true };
-        }
+            process.env.__OW_ACTION_NAME = "my-action"
 
-        const finalMain = actionWrapper(main);
+            function main(params) {
+                assert.equal(typeof params, "object");
 
-        // must not throw if no params are passed in
-        const result = await finalMain();
-        assert.equal(result.ok, true);
+                // passed in params
+                assert.equal(params.key, "value");
+
+                // metrics from wrapper
+                assert.equal(typeof params.metrics, "object");
+
+                params.metrics.add({
+                    my: "metric"
+                });
+
+                throw new Error("broken");
+            }
+
+            const finalMain = actionWrapper(main);
+
+            const params = {
+                newRelicEventsURL: NR_FAKE_URL,
+                newRelicApiKey: NR_FAKE_API_KEY,
+                key: "value"
+            };
+
+            let threw = false;
+            try {
+                await finalMain(params);
+            } catch (e) {
+                // expected to throw
+                threw = true;
+            }
+            if (!threw) {
+                assert.fail("did not pass through error");
+            }
+
+            assert(nock.isDone(), "did not make these requests: " + nock.pendingMocks());
+        });
     });
 
-    it('metrics wrapper does not overwrite existing params.metrics', async function() {
-        expectNewRelicInsightsEvent({
-            eventType: "activation",
-            timestamp: /\d+/
-        });
+    describe("checkAction", function() {
+        it("should exit if params.__checkAction is set", async function() {
+            const finalMain = actionWrapper(() => ({ ok: false }));
 
-        function main(params) {
-            assert.equal(typeof params, "object");
-
-            // metrics from wrapper
-            assert.equal(params.metrics, "foo");
-
-            return { ok: true };
-        }
-
-        const finalMain = actionWrapper(main);
-
-        const params = {
-            newRelicEventsURL: NR_FAKE_URL,
-            newRelicApiKey: NR_FAKE_API_KEY,
-            metrics: "foo"
-        };
-
-        const result = await finalMain(params);
-        assert.equal(result.ok, true);
-
-        assert(nock.isDone(), "did not make these requests: " + nock.pendingMocks());
-    });
-
-    it('metrics wrapper catches errors', async function() {
-        expectNewRelicInsightsEvent({
-            eventType: "error",
-            timestamp: /\d+/,
-            actionName: "my-action",
-            my: "metric",
-            location: "my-action",
-            message: "broken"
-        });
-        expectNewRelicInsightsEvent({
-            eventType: "activation",
-            timestamp: /\d+/,
-            actionName: "my-action",
-            my: "metric"
-        });
-
-        process.env.__OW_ACTION_NAME = "my-action"
-
-        function main(params) {
-            assert.equal(typeof params, "object");
-
-            // passed in params
-            assert.equal(params.key, "value");
-
-            // metrics from wrapper
-            assert.equal(typeof params.metrics, "object");
-
-            params.metrics.add({
-                my: "metric"
+            // run with checkAction flag
+            let result = await finalMain({
+                __checkAction: true
             });
+            assert.equal(result.ok, true);
+            assert.equal(result.checkAction, true);
 
-            throw new Error("broken");
-        }
-
-        const finalMain = actionWrapper(main);
-
-        const params = {
-            newRelicEventsURL: NR_FAKE_URL,
-            newRelicApiKey: NR_FAKE_API_KEY,
-            key: "value"
-        };
-
-        let threw = false;
-        try {
-            await finalMain(params);
-        } catch (e) {
-            // expected to throw
-            threw = true;
-        }
-        if (!threw) {
-            assert.fail("did not pass through error");
-        }
-
-        assert(nock.isDone(), "did not make these requests: " + nock.pendingMocks());
+            // run without checkAction flag
+            result = await finalMain({});
+            assert.equal(result.ok, false);
+            assert.equal(result.checkAction, undefined);
+        });
     });
 });
