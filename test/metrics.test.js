@@ -418,6 +418,84 @@ describe("AssetComputeMetrics", function() {
         assert.ok(nockSendEvent.isDone(), "metrics not properly sent");
 	});
 
+    it("add()", async function() {
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value",
+            added: "metric",
+            anotherAdded: "metric"
+        });
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value",
+            added: "metric2",
+            anotherAdded: "metric"
+        });
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            added: "metric3",
+            anotherAdded: "metric"
+        });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            test: "value",
+            added: "metric2",
+            anotherAdded: "metric"
+        });
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        // add metrics
+        metrics.add({
+            added: "metric",
+            anotherAdded: "metric"
+        });
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+
+        // overwrite previously added metrics with newly added metrics
+        metrics.add({added: "metric2"});
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+
+        // overwrite previously added metrics via send() metrics
+        await metrics.sendMetrics(EVENT_TYPE, {added: "metric3"});
+
+        await metrics.activationFinished({ test: "value" });
+        assert.ok(nock.isDone(), "metrics not properly sent");
+    });
+
+    it("get()", async function() {
+        expectNewRelicInsightsEvent({
+            eventType: EVENT_TYPE,
+            test: "value",
+            added: "metric",
+            anotherAdded: "metric"
+        });
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS, {
+            disableActionTimeout: true
+        });
+        metrics.add({
+            added: "metric",
+            anotherAdded: "metric"
+        });
+
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+
+        const actual = metrics.get();
+        const expected = Object.assign({
+            added: "metric",
+            anotherAdded: "metric",
+        }, EXPECTED_METRICS);
+
+        // ignore dynamic timestamp
+        delete actual.timestamp;
+        delete expected.timestamp;
+
+        assert.deepStrictEqual(actual, expected);
+
+        assert.ok(nock.isDone(), "metrics not properly sent");
+    });
+
     describe("negative error cases", function() {
         it("sendMetrics fails", async function() {
             const nockSendEvent = expectNewRelicInsightsEvent({
@@ -492,7 +570,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: NR_FAKE_API_KEY,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, true);
 
         metrics = new AssetComputeMetrics({
@@ -500,7 +577,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, true);
 
         metrics = new AssetComputeMetrics({
@@ -508,7 +584,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, true);
 
         metrics = new AssetComputeMetrics({
@@ -516,7 +591,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: NR_FAKE_API_KEY,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, false);
 
         metrics = new AssetComputeMetrics({
@@ -524,7 +598,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, false);
 
         metrics = new AssetComputeMetrics({
@@ -532,7 +605,6 @@ describe("AssetComputeMetrics (without NR credentials)", function() {
             newRelicApiKey: null,
             requestId: "requestId"
         });
-        assert.ok(metrics.NewRelic === undefined);
         await metrics.activationFinished({}, false);
     });
 });
