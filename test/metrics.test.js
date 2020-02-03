@@ -389,6 +389,24 @@ describe("AssetComputeMetrics", function() {
         assert.ok(nock.isDone(), "metrics not properly sent");
     });
 
+    it("handleError - ignore web action error responses", async function() {
+        nock(NR_FAKE_BASE_URL)
+            .filteringRequestBody(gunzip)
+            .matchHeader("x-insert-key", NR_FAKE_API_KEY)
+            .post(NR_FAKE_EVENTS_PATH, () => true)
+        .replyWithError({ message: "not expected"});
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS, { disableActionTimeout: true });
+
+        await metrics.handleError({
+            statusCode: 400,
+            body: {
+                ok: false
+            }
+        });
+        assert.ok(!nock.isDone(), "it did send metrics although it should not");
+    });
+
     it("send timeout metrics", async function() {
         const nockSendEvent = expectNewRelicInsightsEvent({
             eventType: "timeout"
