@@ -23,6 +23,7 @@ const rewire = require('rewire');
 
 const AssetComputeLogUtils = require('../lib/log-utils');
 const rewiredRedact = rewire('../lib/log-utils');
+const AssetComputeMetrics = require('../lib/metrics');
 
 describe("log-utils.js - Credentials redaction", function() {
     it("redacts fields does not throw when object is null", function() {
@@ -30,12 +31,12 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
         assert.equal(redactedObject, null);
     });
@@ -45,12 +46,12 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
         assert.equal(redactedObject, undefined);
     });
@@ -64,12 +65,12 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
 
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
@@ -79,29 +80,29 @@ describe("log-utils.js - Credentials redaction", function() {
     });
 
     it("redacts urls from header fields", function () {
-        const testHeaders = { 
-            'content-length': [ '1290938' ], 
-            'content-type': [ 'image/jpeg' ], 
-            'last-modified': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
-            'accept-ranges': [ 'bytes' ], 
-            'etag': [ '"0x001234567"' ], 
-            'server': [ 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0' ], 
-            'x-ms-request-id': [ 'req-id' ], 
-            'x-ms-version': [ '2019-02-02' ], 
-            'x-ms-creation-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
-            'x-ms-lease-status': [ 'unlocked' ], 
-            'x-ms-lease-state': [ 'available' ], 
-            'x-ms-blob-type': [ 'BlockBlob' ], 
-            'x-ms-copy-id': [ 'copy-id' ], 
-            'x-ms-copy-source': [ 'https://this.test.me:8080/this-is-a-test/file.png' ], 
-            'x-ms-copy-status': [ 'success' ], 
-            'x-ms-copy-progress': [ '1290938/1290938' ], 
-            'x-ms-copy-completion-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
-            'x-ms-server-encrypted': [ 'true' ], 
-            'x-ms-access-tier': [ 'Hot' ], 
-            'x-ms-access-tier-inferred': [ 'true' ], 
-            'date': [ 'Mon, 09 Dec 2019 10:19:32 GMT' ], 
-            'connection': [ 'close' ] 
+        const testHeaders = {
+            'content-length': [ '1290938' ],
+            'content-type': [ 'image/jpeg' ],
+            'last-modified': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ],
+            'accept-ranges': [ 'bytes' ],
+            'etag': [ '"0x001234567"' ],
+            'server': [ 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0' ],
+            'x-ms-request-id': [ 'req-id' ],
+            'x-ms-version': [ '2019-02-02' ],
+            'x-ms-creation-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ],
+            'x-ms-lease-status': [ 'unlocked' ],
+            'x-ms-lease-state': [ 'available' ],
+            'x-ms-blob-type': [ 'BlockBlob' ],
+            'x-ms-copy-id': [ 'copy-id' ],
+            'x-ms-copy-source': [ 'https://this.test.me:8080/this-is-a-test/file.png' ],
+            'x-ms-copy-status': [ 'success' ],
+            'x-ms-copy-progress': [ '1290938/1290938' ],
+            'x-ms-copy-completion-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ],
+            'x-ms-server-encrypted': [ 'true' ],
+            'x-ms-access-tier': [ 'Hot' ],
+            'x-ms-access-tier-inferred': [ 'true' ],
+            'date': [ 'Mon, 09 Dec 2019 10:19:32 GMT' ],
+            'connection': [ 'close' ]
         };
 
         const res = AssetComputeLogUtils.redactUrl(testHeaders);
@@ -109,29 +110,29 @@ describe("log-utils.js - Credentials redaction", function() {
     });
 
     it("logs redacted urls only (whitebox)", function () {
-        const testHeaders = { 
-            'content-length': [ '1290938' ], 
-            'content-type': [ 'image/jpeg' ], 
-            'last-modified': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
-            'accept-ranges': [ 'bytes' ], 
-            'etag': [ '"0x001234567"' ], 
-            'server': [ 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0' ], 
-            'x-ms-request-id': [ 'req-id' ], 
-            'x-ms-version': [ '2019-02-02' ], 
-            'x-ms-creation-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
-            'x-ms-lease-status': [ 'unlocked' ], 
-            'x-ms-lease-state': [ 'available' ], 
-            'x-ms-blob-type': [ 'BlockBlob' ], 
-            'x-ms-copy-id': [ 'copy-id' ], 
-            'x-ms-copy-source': [ 'https://this.test.me:8080/this-is-a-test/file.png' ], 
-            'x-ms-copy-status': [ 'success' ], 
-            'x-ms-copy-progress': [ '1290938/1290938' ], 
-            'x-ms-copy-completion-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ], 
-            'x-ms-server-encrypted': [ 'true' ], 
-            'x-ms-access-tier': [ 'Hot' ], 
-            'x-ms-access-tier-inferred': [ 'true' ], 
-            'date': [ 'Mon, 09 Dec 2019 10:19:32 GMT' ], 
-            'connection': [ 'close' ] 
+        const testHeaders = {
+            'content-length': [ '1290938' ],
+            'content-type': [ 'image/jpeg' ],
+            'last-modified': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ],
+            'accept-ranges': [ 'bytes' ],
+            'etag': [ '"0x001234567"' ],
+            'server': [ 'Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0' ],
+            'x-ms-request-id': [ 'req-id' ],
+            'x-ms-version': [ '2019-02-02' ],
+            'x-ms-creation-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ],
+            'x-ms-lease-status': [ 'unlocked' ],
+            'x-ms-lease-state': [ 'available' ],
+            'x-ms-blob-type': [ 'BlockBlob' ],
+            'x-ms-copy-id': [ 'copy-id' ],
+            'x-ms-copy-source': [ 'https://this.test.me:8080/this-is-a-test/file.png' ],
+            'x-ms-copy-status': [ 'success' ],
+            'x-ms-copy-progress': [ '1290938/1290938' ],
+            'x-ms-copy-completion-time': [ 'Thu, 05 Sep 2019 19:51:25 GMT' ],
+            'x-ms-server-encrypted': [ 'true' ],
+            'x-ms-access-tier': [ 'Hot' ],
+            'x-ms-access-tier-inferred': [ 'true' ],
+            'date': [ 'Mon, 09 Dec 2019 10:19:32 GMT' ],
+            'connection': [ 'close' ]
         };
 
         const credsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
@@ -165,12 +166,12 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(parentObj, options, false);
 
         assert.equal(redactedObject.testObj.newRelicApiKey, "[...REDACTED...]");
@@ -194,12 +195,12 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(parentObj, options, false);
 
         assert.equal(redactedObject.newRelicApiKey, "[...REDACTED...]");
@@ -216,12 +217,12 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
 
         assert.equal(redactedObject.noRedact, "no-redact");
@@ -236,9 +237,9 @@ describe("log-utils.js - Credentials redaction", function() {
 
         const options = [];
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
-        
+
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -251,14 +252,14 @@ describe("log-utils.js - Credentials redaction", function() {
         testObj.nestedNoRedact = { aField: "no-redact" };
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: 42}
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
-        
+
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -271,14 +272,14 @@ describe("log-utils.js - Credentials redaction", function() {
         testObj.nestedNoRedact = { aField: "no-redact" };
 
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: [], redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
-        
+
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -295,12 +296,12 @@ describe("log-utils.js - Credentials removal", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, true);
 
         assert.equal(redactedObject.newRelicApiKey, undefined);
@@ -323,12 +324,12 @@ describe("log-utils.js - Credentials removal", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(parentObj, options, true);
 
         assert.equal(redactedObject.testObj.newRelicApiKey, undefined);
@@ -352,12 +353,12 @@ describe("log-utils.js - Credentials removal", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(parentObj, options, true);
 
         assert.equal(redactedObject.newRelicApiKey, undefined);
@@ -374,12 +375,12 @@ describe("log-utils.js - Credentials removal", function() {
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
 
         assert.equal(redactedObject.noRedact, "no-redact");
@@ -394,9 +395,9 @@ describe("log-utils.js - Credentials removal", function() {
 
         const options = [];
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, true);
-        
+
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -409,14 +410,14 @@ describe("log-utils.js - Credentials removal", function() {
         testObj.nestedNoRedact = { aField: "no-redact" };
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: 42}
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, true);
-        
+
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -429,14 +430,14 @@ describe("log-utils.js - Credentials removal", function() {
         testObj.nestedNoRedact = { aField: "no-redact" };
 
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: [], redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, true);
-        
+
         assert.equal(redactedObject.noRedact, "no-redact");
         assert.equal(redactedObject.newRelicApiKey, "newRelicApiKey");
         assert.equal(redactedObject.nestedNoRedact.aField, "no-redact");
@@ -456,7 +457,7 @@ describe("log-utils.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const options = [ 
+        const options = [
             {redactionList: ["oneField", "twoField", "threeField"], redactionFn: function (){ return "[...REDACTED...]"} }
         ];
 
@@ -482,7 +483,7 @@ describe("log-utils.js - Custom fields redaction", function() {
 
         parentObj.testObj = testObj;
 
-        const options = [ 
+        const options = [
                             {redactionList: ["oneField", "twoField"], redactionFn: function (){ return "[...REDACTED2...]"} },
                             {redactionList: ["threeField"], redactionFn: function (){ return "[...REDACTED3...]"} },
                         ];
@@ -696,14 +697,14 @@ describe("log-utils.js - Url redaction", function(){
 
         const fieldsToRedact = rewiredRedact.__get__("URL_FIELDS_TO_REDACT");
         const redactFn = rewiredRedact.__get__("redactUrls");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: redactFn}
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
-        
+
         assert.ok(redactedObject.source !== testObj.source);
         assert.equal(redactedObject.target, testObj.target);
         assert.equal(redactedObject.noRedact, testObj.noRedact);
@@ -737,9 +738,9 @@ describe("log-utils.js - Url redaction", function(){
 
         const options = [];
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
-        
+
         assert.equal(redactedObject.source, testObj.source);
         assert.equal(redactedObject.target, testObj.target);
         assert.equal(redactedObject.noRedact, testObj.noRedact);
@@ -772,14 +773,14 @@ describe("log-utils.js - Url redaction", function(){
         ];
 
         const fieldsToRedact = rewiredRedact.__get__("URL_FIELDS_TO_REDACT");
-        const options = [ 
+        const options = [
             {redactionList: fieldsToRedact, redactionFn: 42}
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
-        
+
         assert.equal(redactedObject.source, testObj.source);
         assert.equal(redactedObject.target, testObj.target);
         assert.equal(redactedObject.noRedact, testObj.noRedact);
@@ -812,9 +813,9 @@ describe("log-utils.js - Url redaction", function(){
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         let redactedObject = redact(testObj, {}, false);
-        
+
         assert.equal(redactedObject.source, testObj.source);
         assert.equal(redactedObject.target, testObj.target);
         assert.equal(redactedObject.noRedact, testObj.noRedact);
@@ -829,7 +830,7 @@ describe("log-utils.js - Url redaction", function(){
         assert.equal(redactedObject.urls[7], testObj.urls[7]);
 
         redactedObject = redact(testObj, 42, false);
-        
+
         assert.equal(redactedObject.source, testObj.source);
         assert.equal(redactedObject.target, testObj.target);
         assert.equal(redactedObject.noRedact, testObj.noRedact);
@@ -844,7 +845,7 @@ describe("log-utils.js - Url redaction", function(){
         assert.equal(redactedObject.urls[7], testObj.urls[7]);
 
         redactedObject = redact(testObj, "", false);
-        
+
         assert.equal(redactedObject.source, testObj.source);
         assert.equal(redactedObject.target, testObj.target);
         assert.equal(redactedObject.noRedact, testObj.noRedact);
@@ -877,14 +878,14 @@ describe("log-utils.js - Url redaction", function(){
         ];
 
         const redactField = rewiredRedact.__get__("redactField");
-        const options = [ 
+        const options = [
             {redactionList: [], redactionFn: redactField }
         ];
 
         const redact = rewiredRedact.__get__("redact");
-        
+
         const redactedObject = redact(testObj, options, false);
-        
+
         assert.equal(redactedObject.source, testObj.source);
         assert.equal(redactedObject.target, testObj.target);
         assert.equal(redactedObject.noRedact, testObj.noRedact);
@@ -897,5 +898,30 @@ describe("log-utils.js - Url redaction", function(){
         assert.equal(redactedObject.urls[5], testObj.urls[5]);
         assert.equal(redactedObject.urls[6], testObj.urls[6]);
         assert.equal(redactedObject.urls[7], testObj.urls[7]);
+    });
+
+    it("redact() can handle circular dependencies without throwing", function() {
+        const params = {
+            key: "value"
+        };
+        params.bad = {
+            params
+        };
+        const redact = rewiredRedact.__get__("redact");
+        const redacted = redact(params);
+        assert.equal(typeof redacted, "object");
+        assert.equal(redacted.key, "value");
+    });
+
+    it("redact() ignores internal objects", function() {
+        const params = {
+            key: "value"
+        };
+        params.metrics = new AssetComputeMetrics(params);
+        const redact = rewiredRedact.__get__("redact");
+        const redacted = redact(params);
+        assert.equal(typeof redacted, "object");
+        assert.equal(redacted.key, "value");
+        assert.equal(redacted.metrics, undefined);
     });
 });
