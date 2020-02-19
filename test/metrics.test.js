@@ -137,6 +137,7 @@ describe("AssetComputeMetrics", function() {
         });
         expectNewRelicInsightsEvent({
             eventType: "activation",
+            duration: /\d+/,
             test: "value"
         });
 
@@ -154,6 +155,7 @@ describe("AssetComputeMetrics", function() {
         });
         expectNewRelicInsightsEvent({
             eventType: "activation",
+            duration: /\d+/,
             test: "value"
         });
 
@@ -190,7 +192,10 @@ describe("AssetComputeMetrics", function() {
             test: "value2"
         });
 
-        expectNewRelicInsightsEvent({ eventType: "activation" });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            duration: /\d+/
+        });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -203,7 +208,7 @@ describe("AssetComputeMetrics", function() {
     it("sendMetrics - No Source Object", async function() {
         expectNewRelicInsightsEvent(Object.assign({}, EXPECTED_METRICS_NO_SOURCE, { eventType: "myevent" }), 200, false);
 
-        expectNewRelicInsightsEvent(Object.assign({}, EXPECTED_METRICS_NO_SOURCE, { eventType: "activation" }), 200, false);
+        expectNewRelicInsightsEvent(Object.assign({}, EXPECTED_METRICS_NO_SOURCE, { eventType: "activation", duration: /\d+/ }), 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS_NO_SOURCE);
 
@@ -219,7 +224,8 @@ describe("AssetComputeMetrics", function() {
             test:'value'
         }), 200, false);
         expectNewRelicInsightsEvent( Object.assign( {}, EXPECTED_METRICS_NO_SOURCE, {
-            eventType: 'activation'
+            eventType: 'activation',
+            duration: /\d+/
         }), 200, false);
 
         const metrics = new AssetComputeMetrics(Object.assign({}, FAKE_PARAMS_NO_SOURCE, {
@@ -268,7 +274,10 @@ describe("AssetComputeMetrics", function() {
             location: "location",
             test: "value"
         });
-        expectNewRelicInsightsEvent({ eventType: "activation" });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            duration: /\d+/
+        });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -290,7 +299,10 @@ describe("AssetComputeMetrics", function() {
             statusCode: 400,
             test: "value"
         });
-        expectNewRelicInsightsEvent({ eventType: "activation" });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            duration: /\d+/
+        });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -313,7 +325,10 @@ describe("AssetComputeMetrics", function() {
             reason: Reason.SourceFormatUnsupported,
             test: "value"
         });
-        expectNewRelicInsightsEvent({ eventType: "activation" });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            duration: /\d+/
+        });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -335,7 +350,10 @@ describe("AssetComputeMetrics", function() {
             location: "location",
             test: "value"
         });
-        expectNewRelicInsightsEvent({ eventType: "activation" });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            duration: /\d+/
+        });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
 
@@ -354,7 +372,10 @@ describe("AssetComputeMetrics", function() {
             message: "message",
             location: "action" // taken from action name
         });
-        expectNewRelicInsightsEvent({ eventType: "activation" });
+        expectNewRelicInsightsEvent({
+            eventType: "activation",
+            duration: /\d+/
+        });
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.handleError(new GenericError("message"));
@@ -381,7 +402,7 @@ describe("AssetComputeMetrics", function() {
             message: "message",
             location: ""
         }, metrics_no_actionName), 200, false);
-        expectNewRelicInsightsEvent(Object.assign({ eventType: "activation" }, metrics_no_actionName), 200, false);
+        expectNewRelicInsightsEvent(Object.assign({ eventType: "activation", duration: /\d+/ }, metrics_no_actionName), 200, false);
 
         const metrics = new AssetComputeMetrics(FAKE_PARAMS);
         await metrics.handleError(new GenericError("message"));
@@ -456,6 +477,7 @@ describe("AssetComputeMetrics", function() {
         });
         expectNewRelicInsightsEvent({
             eventType: "activation",
+            duration: /\d+/,
             test: "value",
             added: "metric2",
             anotherAdded: "metric"
@@ -540,7 +562,7 @@ describe("AssetComputeMetrics", function() {
                 eventType: EVENT_TYPE,
                 test: "value"
             }, metrics_no_auth), 200, false);
-            expectNewRelicInsightsEvent(Object.assign({ eventType: "activation" }, metrics_no_auth), 200, false);
+            expectNewRelicInsightsEvent(Object.assign({ eventType: "activation", duration: /\d+/ }, metrics_no_auth), 200, false);
 
             const metrics = new AssetComputeMetrics({
                 newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,

@@ -58,6 +58,7 @@ describe("wrap", function() {
             expectNewRelicInsightsEvent({
                 eventType: "activation",
                 timestamp: /\d+/,
+                duration: /\d+/,
                 my: "metric"
             });
 
@@ -115,7 +116,8 @@ describe("wrap", function() {
         it('metrics wrapper does not overwrite existing params.metrics', async function() {
             expectNewRelicInsightsEvent({
                 eventType: "activation",
-                timestamp: /\d+/
+                timestamp: /\d+/,
+                duration: /\d+/
             });
 
             function main(params) {
@@ -154,6 +156,7 @@ describe("wrap", function() {
                 eventType: "activation",
                 timestamp: /\d+/,
                 actionName: "my-action",
+                duration: /\d+/,
                 my: "metric"
             });
 
