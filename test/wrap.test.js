@@ -34,7 +34,7 @@ function gunzip(body) {
     return body;
 }
 
-function expectNewRelicInsightsEvent(metrics) {
+function expectNewRelicInsightsEvents(metrics) {
     return nock(NR_FAKE_BASE_URL)
         .filteringRequestBody(gunzip)
         .matchHeader("x-insert-key", NR_FAKE_API_KEY)
@@ -55,12 +55,12 @@ describe("wrap", function() {
 
     describe("metrics", function() {
         it('wraps an action and provides metrics', async function() {
-            expectNewRelicInsightsEvent({
+            expectNewRelicInsightsEvents([{
                 eventType: "activation",
                 timestamp: /\d+/,
                 duration: /\d+/,
                 my: "metric"
-            });
+            }]);
 
             function main(params) {
                 assert.equal(typeof params, "object");
@@ -114,11 +114,11 @@ describe("wrap", function() {
         });
 
         it('metrics wrapper does not overwrite existing params.metrics', async function() {
-            expectNewRelicInsightsEvent({
+            expectNewRelicInsightsEvents([{
                 eventType: "activation",
                 timestamp: /\d+/,
                 duration: /\d+/
-            });
+            }]);
 
             function main(params) {
                 assert.equal(typeof params, "object");
@@ -144,21 +144,20 @@ describe("wrap", function() {
         });
 
         it('metrics wrapper catches errors', async function() {
-            expectNewRelicInsightsEvent({
+            expectNewRelicInsightsEvents([{
                 eventType: "error",
                 timestamp: /\d+/,
                 actionName: "my-action",
                 my: "metric",
                 location: "my-action",
                 message: "broken"
-            });
-            expectNewRelicInsightsEvent({
+            },{
                 eventType: "activation",
                 timestamp: /\d+/,
                 actionName: "my-action",
                 duration: /\d+/,
                 my: "metric"
-            });
+            }]);
 
             process.env.__OW_ACTION_NAME = "my-action"
 

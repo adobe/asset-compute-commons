@@ -23,6 +23,7 @@ const fs = require('fs');
 const nock = require('nock');
 const assert = require('assert');
 const AssetComputeEvents = require('../lib/events');
+const AssetComputeMetrics = require('../lib/metrics');
 
 const NR_FAKE_BASE_URL = "http://newrelic.com";
 const NR_FAKE_EVENTS_PATH = "/events";
@@ -143,7 +144,10 @@ describe("AssetComputeEvents", function() {
 
         process.env.__OW_DEADLINE = Date.now() + 2000;
 
-        const events = new AssetComputeEvents(FAKE_PARAMS, {
+        const events = new AssetComputeEvents({
+            ...FAKE_PARAMS,
+            metrics: new AssetComputeMetrics(FAKE_PARAMS, {sendImmediately: true})
+        }, {
             // hack to make adobe-io-events-client not retry
             maxSeconds: -1
         });
