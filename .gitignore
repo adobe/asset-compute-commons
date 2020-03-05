@@ -8,3 +8,7 @@ build/
 node_modules
 .vscode/*
 !.vscode/launch.json
+
+.aio
+.env
+dist/
