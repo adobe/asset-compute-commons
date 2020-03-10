@@ -40,6 +40,7 @@ const FAKE_PARAMS = {
     },
     auth: {
         orgId: "orgId",
+        orgName: "orgName",
         clientId: "clientId",
         appName:"appName"
     }
@@ -51,6 +52,7 @@ const FAKE_PARAMS_NO_SOURCE = {
     requestId: "requestId",
     auth: {
         orgId: "orgId",
+        orgName: "orgName",
         clientId: "clientId",
         appName: "appName"
     }
@@ -61,6 +63,7 @@ const EXPECTED_METRICS = {
     namespace: "namespace",
     activationId: "activationId",
     orgId: "orgId",
+    orgName: "orgName",
     clientId: "clientId",
     package: "package",
     sourceName: "AssetName.txt",
@@ -76,6 +79,7 @@ const EXPECTED_METRICS_NO_SOURCE = {
     namespace: "namespace",
     activationId: "activationId",
     orgId: "orgId",
+    orgName: "orgName",
     clientId: "clientId",
     package: "package",
     timestamp: /\d+/,
@@ -393,6 +397,7 @@ describe("AssetComputeMetrics", function() {
             namespace: "namespace",
             activationId: "activationId",
             orgId: "orgId",
+            orgName: "orgName",
             clientId: "clientId",
             sourceName: "AssetName.txt",
             sourceMimetype: "mimetype",
