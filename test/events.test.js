@@ -17,22 +17,19 @@
 
 'use strict';
 
+const AssetComputeEvents = require('../lib/events');
+const AssetComputeMetrics = require('../lib/metrics');
 const jsonwebtoken = require('jsonwebtoken');
 const tmp = require('tmp');
 const fs = require('fs');
 const nock = require('nock');
 const assert = require('assert');
-const AssetComputeEvents = require('../lib/events');
-const AssetComputeMetrics = require('../lib/metrics');
-
-const NR_FAKE_BASE_URL = "http://newrelic.com";
-const NR_FAKE_EVENTS_PATH = "/events";
-const NR_FAKE_API_KEY = "new-relic-api-key";
+const MetricsTestHelper = require("@nui/openwhisk-newrelic/lib/testhelper");
 
 
 const FAKE_PARAMS = {
-    newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
-    newRelicApiKey: NR_FAKE_API_KEY,
+    newRelicEventsURL: MetricsTestHelper.MOCK_URL,
+    newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
     requestId:"requestId",
     auth: {
         orgId: "orgId",
@@ -43,15 +40,20 @@ const FAKE_PARAMS = {
 }
 
 const FAKE_PARAMS_NO_AUTH = {
-    newRelicEventsURL: `${NR_FAKE_BASE_URL}${NR_FAKE_EVENTS_PATH}`,
-    newRelicApiKey: NR_FAKE_API_KEY,
+    newRelicEventsURL: MetricsTestHelper.MOCK_URL,
+    newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
     requestId:"requestId",
 };
 
 describe("AssetComputeEvents", function() {
     beforeEach(function() {
         delete process.env.NUI_UNIT_TEST_OUT;
-    })
+        MetricsTestHelper.beforeEachTest();
+    });
+
+    afterEach(function() {
+        MetricsTestHelper.afterEachTest();
+    });
 
     it("constructor should accept empty params", function() {
         assert.ok(new AssetComputeEvents());
@@ -137,16 +139,13 @@ describe("AssetComputeEvents", function() {
         const nockSendEvent = nock("https://eg-ingress.adobe.io")
             .post("/api/events")
             .reply(500, {});
-        const nockSendMetrics = nock(NR_FAKE_BASE_URL)
-            .matchHeader("x-insert-key", NR_FAKE_API_KEY)
-            .post(NR_FAKE_EVENTS_PATH)
-            .reply(200, {});
+        const receivedMetrics = MetricsTestHelper.mockNewRelic();
 
         process.env.__OW_DEADLINE = Date.now() + 2000;
 
         const events = new AssetComputeEvents({
             ...FAKE_PARAMS,
-            metrics: new AssetComputeMetrics(FAKE_PARAMS, {sendImmediately: true})
+            metrics: new AssetComputeMetrics(FAKE_PARAMS)
         }, {
             // hack to make adobe-io-events-client not retry
             maxSeconds: -1
@@ -154,6 +153,11 @@ describe("AssetComputeEvents", function() {
         await events.sendEvent("my_event", {test: "value"});
 
         assert.ok(nockSendEvent.isDone(), "io event not tried");
-        assert.ok(nockSendMetrics.isDone(), "error metrics not sent");
+
+        await MetricsTestHelper.metricsDone();
+        MetricsTestHelper.assertArrayContains(receivedMetrics, [{
+            eventType: "error",
+            location: "IOEvents"
+        }]);
     });
 });
