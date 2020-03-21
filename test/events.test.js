@@ -145,11 +145,10 @@ describe("AssetComputeEvents", function() {
 
         const events = new AssetComputeEvents({
             ...FAKE_PARAMS,
-            metrics: new AssetComputeMetrics(FAKE_PARAMS)
-        }, {
-            // hack to make adobe-io-events-client not retry
-            maxSeconds: -1
-        });
+            metrics: new AssetComputeMetrics(FAKE_PARAMS, { sendImmediately: true })
+        },
+            false
+        );
         await events.sendEvent("my_event", {test: "value"});
 
         assert.ok(nockSendEvent.isDone(), "io event not tried");
