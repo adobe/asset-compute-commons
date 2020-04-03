@@ -14,7 +14,7 @@
     "url": "https://git.corp.adobe.com/nui/asset-compute-commons.git"
   },
   "dependencies": {
-    "@nui/adobe-io-events-client": "^2.0.0",
+    "@nui/adobe-io-events-client": "^3.0.0",
     "@nui/openwhisk-newrelic": "^6.0.0",
     "ajv": "^5.5.2",
     "clone": "^2.1.2",
