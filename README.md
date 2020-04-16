@@ -5,3 +5,9 @@
 Common utilities needed by all Asset Compute serverless actions
 
 _This will be open sourced as it will be part of the Nui SDK to build custom workers_
+
+### Contributing
+Contributions are welcomed! Read the [Contributing Guide](./.github/CONTRIBUTING.md) for more information.
+
+### Licensing
+This project is licensed under the Apache V2 License. See [LICENSE](LICENSE) for more information.
