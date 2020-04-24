@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@nui/adobe-io-events-client": "^5.0.0",
-    "@nui/openwhisk-newrelic": "^6.0.0",
+    "@nui/openwhisk-newrelic": "^8.0.0",
     "ajv": "^5.5.2",
     "clone": "^2.1.2",
     "tmp": "^0.1.0",

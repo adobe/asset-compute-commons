@@ -29,5 +29,6 @@ module.exports = {
   AssetComputeMetrics,
   ...AssetComputeErrors,
   actionWrapper,
+  /** This requires "nock" to be installed in devDependencies */
   MetricsTestHelper
 };
