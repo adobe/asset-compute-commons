@@ -1,6 +1,6 @@
 {
   "name": "@nui/asset-compute-commons",
-  "version": "12.0.0",
+  "version": "13.0.0",
   "main": "index.js",
   "description": "Common utilities needed by all Asset Compute serverless actions",
   "author": {
