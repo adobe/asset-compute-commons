@@ -514,7 +514,7 @@ describe("AssetComputeMetrics", function() {
         delete actual.timestamp;
         delete expected.timestamp;
 
-        assert.deepStrictEqual(actual, expected);
+        MetricsTestHelper.assertObjectMatches(actual, expected);
 
         await metrics.activationFinished();
 
