@@ -42,7 +42,7 @@ const FAKE_PARAMS_NO_AUTH = {
 
 describe("AssetComputeEvents", function() {
     beforeEach(function() {
-        delete process.env.NUI_UNIT_TEST_OUT;
+        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
         MetricsTestHelper.beforeEachTest();
     });
 
@@ -69,7 +69,7 @@ describe("AssetComputeEvents", function() {
 
     it("sendEvent - file system", async function() {
         const fsEventDir = tmp.dirSync().name;
-        process.env.NUI_UNIT_TEST_OUT = fsEventDir;
+        process.env.ASSET_COMPUTE_UNIT_TEST_OUT = fsEventDir;
 
         // make sure to not include params.auth since that is missing for unit tests
         const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);
@@ -95,7 +95,7 @@ describe("AssetComputeEvents", function() {
 
     it("sendEvent - handled error if no auth", async function() {
         // not setting this
-        delete process.env.NUI_UNIT_TEST_OUT;
+        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
 
         // ...and not setting params.auth
         const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);

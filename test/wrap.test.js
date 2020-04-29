@@ -159,7 +159,7 @@ describe("wrap", function() {
             let threw = false;
             try {
                 await finalMain(params);
-            } catch (e) {
+            } catch (e) { /* eslint-disable-line no-unused-vars */
                 // expected to throw
                 threw = true;
             }

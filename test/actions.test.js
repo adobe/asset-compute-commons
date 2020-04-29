@@ -21,7 +21,7 @@ describe("OpenwhiskActionName", function() {
         assert.ok(details.name === "");
     });
 
-    it('return NUI TEST ENV value in test env)', function() {
+    it('return Asset Compute TEST ENV value in test env)', function() {
         const details = new OpenwhiskActionName("test_action");
         assert.equal(details.name, "test_action");
     });

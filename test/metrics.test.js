@@ -210,9 +210,10 @@ describe("AssetComputeMetrics", function() {
     it("sendMetrics - No Source Object at initialization, source metadata defined at time of send", async function() {
         const receivedMetrics = MetricsTestHelper.mockNewRelic();
 
-        const metrics = new AssetComputeMetrics(Object.assign({}, FAKE_PARAMS_NO_SOURCE, {
+        const metrics = new AssetComputeMetrics({
+            ...FAKE_PARAMS_NO_SOURCE,
             source: 'source'
-        }));
+        });
         await metrics.sendMetrics(EVENT_TYPE, { test: "value", sourceName:'sourceName' });
         await metrics.activationFinished();
 
@@ -505,10 +506,11 @@ describe("AssetComputeMetrics", function() {
         await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
 
         const actual = metrics.get();
-        const expected = Object.assign({
+        const expected = {
+            ...EXPECTED_METRICS,
             added: "metric",
             anotherAdded: "metric",
-        }, EXPECTED_METRICS);
+        };
 
         // ignore dynamic timestamp
         delete actual.timestamp;
