@@ -7,10 +7,7 @@
   "author": {
     "name": "Adobe Inc."
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/adobe/asset-compute-commons.git"
-  },
+  "repository": "adobe/asset-compute-commons",
   "dependencies": {
     "@adobe/asset-compute-events-client": "^1.0.0",
     "@nui/openwhisk-newrelic": "^10.0.0",
