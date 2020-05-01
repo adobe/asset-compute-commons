@@ -19,7 +19,7 @@ const tmp = require('tmp');
 const fs = require('fs');
 const nock = require('nock');
 const assert = require('assert');
-const MetricsTestHelper = require("@nui/openwhisk-newrelic/lib/testhelper");
+const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
 
 
 const FAKE_PARAMS = {

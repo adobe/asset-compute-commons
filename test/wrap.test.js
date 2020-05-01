@@ -15,7 +15,7 @@ governing permissions and limitations under the License.
 const actionWrapper = require("../lib/wrap");
 const assert = require('assert');
 const nock = require('nock');
-const MetricsTestHelper = require("@nui/openwhisk-newrelic/lib/testhelper");
+const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
 
 describe("wrap", function() {
 
