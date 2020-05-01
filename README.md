@@ -285,7 +285,7 @@ console.log(actionInfo.fullname) // prints full name, ex: /stage/experimental/wo
 
 ## Asynchronous Events
 
-When processing is finished, or if errors occurred, events are sent through [Adobe I/O Events](https://www.adobe.io/apis/experienceplatform/events/documentation.html#!adobedocs/adobeio-events/master/intro/journaling_api.md). Clients must listen to the journal provided through [/register](#register), this [diagram explains the polling logic](https://git.corp.adobe.com/nui/adobe-io-events-client/blob/master/docs/adobeio-journal-v2.png?raw=true). Events are JSON objects in the `event` field of the objects in the `events` array of the jorunal response.
+When processing is finished, or if errors occurred, events are sent through [Adobe I/O Events](https://www.adobe.io/apis/experienceplatform/events/documentation.html#!adobedocs/adobeio-events/master/intro/journaling_api.md). Events are JSON objects in the `event` field of the objects in the `events` array of the jorunal response.
 
 The I/O event type for all events of the Asset Compute service is `asset_compute`. The journal will be automatically subscribed to this event type only, and consumers are not expected to filter based on the i/o event type.
 

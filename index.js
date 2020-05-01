@@ -20,7 +20,7 @@ const AssetComputeErrors = require('./lib/errors');
 const AssetComputeLogUtils = require('./lib/log-utils');
 const actionWrapper = require('./lib/wrap');
 // export here so that it uses the same global openwhisk-newrelic instance for tests
-const MetricsTestHelper = require('@adobe/openwhisk-newrelic/lib/testhelper')
+const MetricsTestHelper = require('@adobe/openwhisk-newrelic/lib/testhelper');
 
 module.exports = {
   OpenwhiskActionName,
