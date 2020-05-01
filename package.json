@@ -1,41 +1,35 @@
 {
-  "name": "@nui/asset-compute-commons",
+  "name": "@adobe/asset-compute-commons",
   "description": "Common utilities needed by all Adobe Asset Compute serverless actions",
   "license": "Apache-2.0",
-  "version": "15.0.0",
+  "version": "1.0.0",
   "main": "index.js",
   "author": {
     "name": "Adobe Inc."
   },
-  "publishConfig": {
-    "registry": "https://artifactory.corp.adobe.com/artifactory/api/npm/npm-nui-release-local"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://git.corp.adobe.com/nui/asset-compute-commons.git"
-  },
+  "repository": "adobe/asset-compute-commons",
   "dependencies": {
     "@adobe/asset-compute-events-client": "^1.0.0",
     "@nui/openwhisk-newrelic": "^10.0.0",
     "ajv": "^5.5.2",
     "clone": "^2.1.2",
-    "tmp": "^0.1.0",
+    "tmp": "^0.2.1",
     "valid-url": "^1.0.9"
   },
   "devDependencies": {
-    "@nui/eslint-config": "^1.0.4",
+    "@adobe/eslint-config-asset-compute": "^1.0.0",
     "@stryker-mutator/core": "^3.0.2",
     "@stryker-mutator/html-reporter": "^3.0.2",
     "@stryker-mutator/javascript-mutator": "^2.5.0",
     "@stryker-mutator/mocha-framework": "^2.5.0",
     "@stryker-mutator/mocha-runner": "^2.5.0",
     "jsonwebtoken": "^8.5.1",
-    "lockfile-lint": "^4.0.0",
-    "mocha": "^7.1.0",
-    "nock": "^12.0.2",
-    "nyc": "^15.0.0",
+    "lockfile-lint": "^4.2.2",
+    "mocha": "^7.1.2",
+    "nock": "^12.0.3",
+    "nyc": "^15.0.1",
     "rewire": "^4.0.1",
-    "sinon": "^8.0.4",
+    "sinon": "^9.0.2",
     "stryker": "^0.35.1",
     "stryker-api": "^0.24.1"
   },
