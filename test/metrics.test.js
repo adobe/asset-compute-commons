@@ -17,7 +17,7 @@ const nock = require('nock');
 const sleep = require('util').promisify(setTimeout);
 const AssetComputeMetrics = require('../lib/metrics');
 const { Reason, SourceFormatUnsupportedError, GenericError } = require('../lib/errors');
-const MetricsTestHelper = require("@nui/openwhisk-newrelic/lib/testhelper");
+const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
 
 
 const EVENT_TYPE = "myevent";

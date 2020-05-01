@@ -1,5 +1,5 @@
 <!--- when a new release happens, the VERSION and URL in the badge have to be manually updated because it's a private registry --->
-[![npm version](https://img.shields.io/badge/%40nui%2Fasset--compute--commons-15.0.0-blue.svg)](https://artifactory.corp.adobe.com/artifactory/npm-nui-release/@nui/asset-compute-commons/-/@nui/asset-compute-commons-15.0.0.tgz)
+[![Version](https://img.shields.io/npm/v/@adobe/node-openwhisk-newrelic.svg)](https://npmjs.org/package/@adobe/node-openwhisk-newrelic)
 
 - [asset-compute-commons](#asset-compute-commons)
 	- [Installation](#installation)
@@ -54,7 +54,7 @@ The `sendEvent` method sends an Adobe IO Event.
 - **type**: String containing the Adobe IO Event type (either `rendition_created` or `rendition_failed`)
 - **payload**: Object containing the event payload
 <!-- assuming we OS the api document below -->
-_see [Asset Compute API Document: Asynchronous Events](https://git.corp.adobe.com/nui/nui/blob/master/doc/api.md#asynchronous-events) for more on this topic_
+_see [Asset Compute API Document: Asynchronous Events](#asynchronous-events) for more on this topic_
 
 #### Examples
 Example with custom retry options:
@@ -242,7 +242,7 @@ Utilities for removing sensitive information from Asset Compute worker logs
 #### Examples
 Redacting access token from logs:
 ```js
-const { AssetComputeLogUtils } = require('@nui/asset-compute-commons');
+const { AssetComputeLogUtils } = require('@adobe/asset-compute-commons');
 
 params = {
 	accessToken: '123453467',
@@ -254,7 +254,7 @@ console.log("Asset Compute parameters:", AssetComputeLogUtils.redactUrl(params))
 
 Prints out exact same logs using `AssetComputeLogUtils.log` method:
 ```js
-const { AssetComputeLogUtils } = require('@nui/asset-compute-commons');
+const { AssetComputeLogUtils } = require('@adobe/asset-compute-commons');
 
 params = {
 	accessToken: '123453467',
@@ -282,6 +282,53 @@ console.log(actionInfo.package) // prints package name, ex: `experimental`
 console.log(actionInfo.namespace) // prints namespace, ex: `stage`
 console.log(actionInfo.fullname) // prints full name, ex: /stage/experimental/worker-pie
 ```
+
+## Asynchronous Events
+
+When processing is finished, or if errors occurred, events are sent through [Adobe I/O Events](https://www.adobe.io/apis/experienceplatform/events/documentation.html#!adobedocs/adobeio-events/master/intro/journaling_api.md). Events are JSON objects in the `event` field of the objects in the `events` array of the jorunal response.
+
+The I/O event type for all events of the Asset Compute service is `asset_compute`. The journal will be automatically subscribed to this event type only, and consumers are not expected to filter based on the i/o event type.
+
+The service specific event types are available in the `type` property of the event.
+
+### Event Types
+
+| Event  | Description |
+|--------|-------------|
+| `rendition_created` | Sent for each successfully processed and uploaded rendition. |
+| `rendition_failed` | Sent for each rendition that failed to process or upload. |
+
+### Event Attributes
+
+| Attribute   | Type     | Event         | Description |
+|-------------|----------|---------------|-------------|
+| `date`      | `string` | `*`           | Timestamp when event was sent in simplified extended [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601) format (as defined by [Javascript Date.toISOString()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString)). |
+| `requestId` | `string` | `*`           | The request id of the original request to `/process`, same as `X-Request-Id` header. |
+| `source`    | `object` | `*`           | The `source` of the `/process` request. |
+| `userData`  | `object` | `*`           | The `userData` of the `/process` request if set. |
+| `rendition` | `object` | `rendition_*` | The corresponding rendition object passed in `/process`. |
+| `metadata ` | `object` | `rendition_created` | The [metadata](#metadata) properties of the rendition. |
+| `errorReason` | `string` | `rendition_*` | Rendition failure [reason](#error-reasons) if any. |
+| `errorMessage` | `string` | `rendition_*` | Text giving more detail about the rendition failure if any. |
+
+### Metadata
+| Property  | Description |
+|--------|-------------|
+| `tiff:ImageWidth` | The width of the rendition in pixels.  Will not be present if the rendition is not an image. |
+| `tiff:ImageLength` | The length of the rendition in pixels.  Will not be present if the rendition is not an image. |
+| `repo:size` | The size of the rendition in bytes. |
+| `repo:sha1` | The sha1 digest of the rendition. |
+
+### Error Reasons
+| Reason  | Description |
+|--------|-------------|
+| `SourceFormatUnsupported` | The source is of an unsupported type. |
+| `RenditionFormatUnsupported` | The requested format is unsupported. |
+| `SourceUnsupported` | The specific source is unsupported even though the type is supported. |
+| `SourceCorrupt` | The source data is corrupt.  Includes empty files. |
+| `RenditionTooLarge` | The rendition could not be uploaded using the pre-signed URL(s) provided in `target`. The actual rendition size is available as metadata in `repo:size` and can be used by the client to re-process this rendition with the right number of pre-signed URLs. |
+| `GenericError` | Any other error. |
+
 
 ### Contributing
 Contributions are welcomed! Read the [Contributing Guide](./.github/CONTRIBUTING.md) for more information.
