@@ -2,15 +2,15 @@
   "name": "@adobe/asset-compute-commons",
   "description": "Common utilities needed by all Adobe Asset Compute serverless actions",
   "license": "Apache-2.0",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "author": {
     "name": "Adobe Inc."
   },
   "repository": "adobe/asset-compute-commons",
   "dependencies": {
-    "@adobe/asset-compute-events-client": "^1.0.0",
-    "@adobe/openwhisk-newrelic": "^1.0.0",
+    "@adobe/asset-compute-events-client": "^1.0.1",
+    "@adobe/openwhisk-newrelic": "^1.0.1",
     "ajv": "^5.5.2",
     "clone": "^2.1.2",
     "tmp": "^0.2.1",
