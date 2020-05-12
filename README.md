@@ -208,7 +208,7 @@ There are several custom errors used in Asset Compute workers:
 
 #### Custom Errors
 | Name  | Description | Type |
-|--------|-------------|
+|--------|-------------|----- |
 | `SourceFormatUnsupportedError` | The source is of an unsupported type. | client error |
 | `RenditionFormatUnsupportedError` | The requested format is unsupported. | client error |
 | `SourceUnsupportedError` | The specific source is unsupported even though the type is supported. | client error |
