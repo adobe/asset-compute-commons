@@ -22,5 +22,9 @@ node_js:
 install:
   - npm version
   - npm install
+
 script:
-  - npm test && echo "DONE"
+  - npm test
+
+env:
+  - YARN_GPG=no
