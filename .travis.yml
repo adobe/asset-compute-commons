@@ -25,6 +25,3 @@ install:
 
 script:
   - npm test
-
-env:
-  - YARN_GPG=no
