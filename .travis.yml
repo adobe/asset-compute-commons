@@ -16,8 +16,6 @@ os:
 
 node_js:
   - "10"
-  - "10.15"
-  - "10.19"
   - "12"
   - "14"
 
@@ -25,4 +23,4 @@ install:
   - npm version
   - npm install
 script:
-  - npm test
+  - npm test && echo "DONE"
