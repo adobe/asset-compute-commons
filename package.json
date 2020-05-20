@@ -42,19 +42,25 @@
     "adobe"
   ],
   "scripts": {
-    "posttest": "cross-os posttest-cross-os",
-    "test": "cross-os test-cross-os"
+    "pretest": "cross-os pretest-cross-os",
+    "test": "cross-os test-cross-os",
+    "posttest": "cross-os posttest-cross-os"
   },
   "cross-os": {
-    "posttest-cross-os": {
-      "darwin": "eslint ./ && ./node_modules/lockfile-lint/bin/lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true",
-      "linux": "eslint ./ && ./node_modules/lockfile-lint/bin/lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true",
-      "win32": "eslint ../ && node_modules\\lockfile-lint\\bin\\lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true"
-    },
+      "pretest-cross-os": {
+        "darwin": "echo $YARN_GPG",
+        "linux": "echo $YARN_GPG",
+        "win32": "echo %YARN_GPG%"
+      },
     "test-cross-os": {
       "darwin": "nyc --reporter=html --reporter=text mocha ./test/*",
       "linux": "nyc --reporter=html --reporter=text mocha ./test/*",
       "win32": "nyc --reporter=html --reporter=text mocha test/*"
+    },
+    "posttest-cross-os": {
+      "darwin": "eslint ./ && ./node_modules/lockfile-lint/bin/lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true",
+      "linux": "eslint ./ && ./node_modules/lockfile-lint/bin/lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true",
+      "win32": "eslint ../ && node_modules\\lockfile-lint\\bin\\lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true"
     }
   },
   "mocha": {

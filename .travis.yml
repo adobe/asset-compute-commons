@@ -20,7 +20,6 @@ node_js:
   - "14"
 
 install:
-  - echo %YARN_GPG%
   - npm version
   - npm install
 
