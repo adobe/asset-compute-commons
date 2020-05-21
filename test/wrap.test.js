@@ -178,7 +178,7 @@ describe("wrap", function() {
                 assert.fail("did not pass through error");
             }
 
-            await MetricsTestHelper.metricsDone();
+            await MetricsTestHelper.metricsDone(400);
             MetricsTestHelper.assertArrayContains(receivedMetrics, [{
                 eventType: "error",
                 timestamp: /\d+/,
