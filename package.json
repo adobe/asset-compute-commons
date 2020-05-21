@@ -54,7 +54,7 @@
     "posttest-cross-os": {
       "darwin": "eslint ./ && ./node_modules/lockfile-lint/bin/lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true",
       "linux": "eslint ./ && ./node_modules/lockfile-lint/bin/lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true",
-      "win32": "taskkill /IM \"node.exe\" /F && eslint ../ && node_modules\\lockfile-lint\\bin\\lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true"
+      "win32": "taskkill /IM \"sh.exe\" /F && taskkill /IM \"node.exe\" /F && eslint ../ && node_modules\\lockfile-lint\\bin\\lockfile-lint.js --path package-lock.json —type npm --allowed-hosts npm artifactory.corp.adobe.com --allowed-schemes \"https:\" \"file:\" --empty-hostname true"
     }
   },
   "mocha": {
