@@ -8,30 +8,27 @@
 # OF ANY KIND, either express or implied. See the License for the specific language
 # governing permissions and limitations under the License.
 
-language: node_js
-os:
-  - linux
-  - osx
-
-node_js:
-  - "10"
-  - "10.15"
-  - "10.19"
-  - "12"
-  - "14"
-
-install:
-  - npm version
-  - npm install
-  - npm install license-checker
-
 jobs:
   include:
     - stage: "Tests"                
-      name: "Run unit tests"            
+      name: "Run unit tests"   
+      language: node_js
+      os:
+        - linux
+        - osx
+      node_js:
+        - "10"
+        - "10.15"
+        - "10.19"
+        - "12"
+        - "14"
+      install:
+        - npm version
+        - npm install         
       script: npm test
     - stage: "Post-test"
-      name: "Get license informtion"
+      name: "Get license information"
+      install: npm install license-checker
       script: license-checker
 
 after_success:
