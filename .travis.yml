@@ -23,5 +23,16 @@ node_js:
 install:
   - npm version
   - npm install
-script:
-  - npm test
+  - npm install license-checker
+
+jobs:
+  include:
+    - stage: "Tests"                
+      name: "Run unit tests"            
+      script: npm test
+    - stage: "Post-test"
+      name: "Get license informtion"
+      script: license-checker
+
+after_success:
+  - npm run report-coverage
