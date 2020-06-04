@@ -27,15 +27,9 @@ install:
 
 jobs:
   include:
-    - stage: "Tests"                
-      name: "Run unit tests"        
-      script: npm test
     - stage: "Post-test"
       name: "Get license information for dependencies"
-      script: license-checker --production --summary
-    - stage: "Post-test: dev dependencies"
-      name: "Get license information for dev dependencies"
-      script: license-checker --development --summary
+      script: license-checker --summary
 
 after_success:
   - npm run report-coverage
