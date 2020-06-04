@@ -25,11 +25,9 @@ install:
   - npm install
   - npm install license-checker
 
-jobs:
-  include:
-    - stage: "Post-test"
-      name: "Get license information for dependencies"
-      script: license-checker --summary
+script:
+  - npm test
+  - license-checker --summary
 
 after_success:
   - npm run report-coverage
