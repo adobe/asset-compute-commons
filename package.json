@@ -1,6 +1,6 @@
 {
   "name": "@adobe/asset-compute-commons",
-  "description": "Common utilities needed by all Adobe Asset Compute serverless actions",
+  "description": "Common utilities needed by all Adobe Asset Compute serverless actions_test for ci",
   "license": "Apache-2.0",
   "version": "1.0.1",
   "main": "index.js",
