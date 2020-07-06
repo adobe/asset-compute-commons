@@ -1,4 +1,4 @@
-Test 4
+Test 5
 <!--- when a new release happens, the VERSION and URL in the badge have to be manually updated because it's a private registry --->
 [![Version](https://img.shields.io/npm/v/@adobe/asset-compute-commons.svg)](https://npmjs.org/package/@adobe/asset-compute-commons)
 
