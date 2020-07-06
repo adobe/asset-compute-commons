@@ -57,6 +57,7 @@ describe("log-utils.js - Credentials redaction", function() {
         testObj.accessToken = "accessToken";
         testObj.uploadToken = "uploadToken";
         testObj.noRedact = "no-redact";
+        testObj.__ow_headers = "owHeaders";
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
@@ -72,6 +73,31 @@ describe("log-utils.js - Credentials redaction", function() {
         assert.equal(redactedObject.accessToken, "[...REDACTED...]");
         assert.equal(redactedObject.uploadToken, "[...REDACTED...]");
         assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.__ow_headers, "[...REDACTED...]");
+    });
+
+    it('redact entire object from a field', function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.__ow_headers = {
+            "authorization": "authorization",
+            "connection": "close",
+            "content-type": "application/json",
+            "x-api-key": "apiKey",
+            "x-gw-ims-client-id": "clientId",
+            "x-gw-ims-org-id": "orgId",
+            "x-ims-access-token": "accessToken"
+        };
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+        const redact = rewiredRedact.__get__("redact");
+        const redactedObject = redact(testObj, options, false);
+
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.__ow_headers, "[...REDACTED...]");
     });
 
     it("redacts urls from header fields", function () {
@@ -287,6 +313,7 @@ describe("log-utils.js - Credentials removal", function() {
         testObj.newRelicApiKey = "newRelicApiKey";
         testObj.accessToken = "accessToken";
         testObj.uploadToken = "uploadToken";
+        testObj.__ow_headers = "owHeaders";
         testObj.noRedact = "no-redact";
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
@@ -302,8 +329,34 @@ describe("log-utils.js - Credentials removal", function() {
         assert.equal(redactedObject.newRelicApiKey, undefined);
         assert.equal(redactedObject.accessToken, undefined);
         assert.equal(redactedObject.uploadToken, undefined);
+        assert.equal(redactedObject.__ow_headers, undefined);
         assert.equal(redactedObject.noRedact, "no-redact");
     });
+
+    it('redact entire object from a field', function() {
+        const testObj = {};
+        testObj.noRedact = "no-redact";
+        testObj.__ow_headers = {
+            "authorization": "authorization",
+            "connection": "close",
+            "content-type": "application/json",
+            "x-api-key": "apiKey",
+            "x-gw-ims-client-id": "clientId",
+            "x-gw-ims-org-id": "orgId",
+            "x-ims-access-token": "accessToken"
+        };
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+        const redact = rewiredRedact.__get__("redact");
+        const redactedObject = redact(testObj, options, true);
+
+        assert.equal(redactedObject.noRedact, "no-redact");
+        assert.equal(redactedObject.__ow_headers, undefined);
+    });
+
 
     it("redacts nested fields (all fields in one level)", function() {
         const parentObj = {};
