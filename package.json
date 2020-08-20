@@ -10,7 +10,7 @@
   "repository": "adobe/asset-compute-commons",
   "dependencies": {
     "@adobe/asset-compute-events-client": "^1.0.1",
-    "@adobe/openwhisk-newrelic": "1.0.1",
+    "@adobe/openwhisk-newrelic": "^1.0.2",
     "ajv": "^5.5.2",
     "clone": "^2.1.2",
     "tmp": "^0.2.1",
