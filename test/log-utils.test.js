@@ -58,6 +58,8 @@ describe("log-utils.js - Credentials redaction", function() {
         testObj.uploadToken = "uploadToken";
         testObj.noRedact = "no-redact";
         testObj.__ow_headers = "owHeaders";
+        testObj.headers = {};
+        testObj.headers.Authorization = "redact";
 
         const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
         const redactField = rewiredRedact.__get__("redactField");
