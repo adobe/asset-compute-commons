@@ -232,6 +232,31 @@ describe("log-utils.js - Credentials redaction", function() {
         assert.equal(redactedObject.testObj.noRedact, "no-redact");
         assert.equal(redactedObject.noRedact, "no-redact-parent");
     });
+    it("redacts rendition-like object", function() {
+        const testObj = {
+            azureAuth: {
+                aadTenantDomain: 'aadTenantDomain',
+                azureClientId: 'azureClientId',
+                azureClientSecret: 'azureClientSecret'
+            },
+            name: 'transcript.vtt',
+            preset: 'video', // or 'audio'
+        };
+
+        const fieldsToRedact = rewiredRedact.__get__("CREDENTIAL_FIELDS_TO_REDACT");
+        const redactField = rewiredRedact.__get__("redactField");
+        const options = [
+            {redactionList: fieldsToRedact, redactionFn: redactField }
+        ];
+
+        const redact = rewiredRedact.__get__("redact");
+
+        const redactedObject = redact(testObj, options, false);
+
+        assert.equal(redactedObject.azureAuth, "[...REDACTED...]");
+        assert.equal(redactedObject.name, "transcript.vtt");
+        assert.equal(redactedObject.preset, "video");
+    });
 
     it("does nothing when not needed", function() {
         const testObj = {};
