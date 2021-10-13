@@ -13,6 +13,7 @@
     "@adobe/openwhisk-newrelic": "^1.0.2",
     "ajv": "^5.5.2",
     "clone": "^2.1.2",
+    "cockatiel": "^2.0.2",
     "tmp": "^0.2.1",
     "valid-url": "^1.0.9"
   },
