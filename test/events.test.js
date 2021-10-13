@@ -47,6 +47,7 @@ describe("AssetComputeEvents", function() {
     });
 
     afterEach(function() {
+        AssetComputeEvents.resetCircuitBreaker();
         MetricsTestHelper.afterEachTest();
     });
 
@@ -103,11 +104,11 @@ describe("AssetComputeEvents", function() {
         // should not throw an error
     });
 
-    it.only("sendEvent - handled error if no auth, should open circuit breaker", async function() {
+    it("sendEvent - handled error if no auth, should open circuit breaker", async function() {
         // not setting this
         delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
 
-        for(let i = 0; i < 5; i++){
+        for(let i = 0; i < 10; i++){
             // ...and not setting params.auth
             const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);
             await events.sendEvent("my_event", {test: "value"});
