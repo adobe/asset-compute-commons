@@ -25,56 +25,56 @@ const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
 const FAKE_PARAMS = {
     newRelicEventsURL: MetricsTestHelper.MOCK_URL,
     newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
-    requestId:"requestId",
+    requestId: "requestId",
     auth: {
         orgId: "orgId",
         clientId: "clientId",
-        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
-        appName:"appName"
+        accessToken: jsonwebtoken.sign({ client_id: "clientId" }, "key"),
+        appName: "appName"
     }
 };
 
 const FAKE_PARAMS_NO_AUTH = {
     newRelicEventsURL: MetricsTestHelper.MOCK_URL,
     newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
-    requestId:"requestId",
+    requestId: "requestId",
 };
 
-describe("AssetComputeEvents", function() {
-    beforeEach(function() {
+describe("AssetComputeEvents", function () {
+    beforeEach(function () {
         delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
         MetricsTestHelper.beforeEachTest();
     });
 
-    afterEach(function() {
+    afterEach(function () {
         AssetComputeEvents.resetCircuitBreaker();
         MetricsTestHelper.afterEachTest();
     });
 
-    it("constructor should accept empty params", function() {
+    it("constructor should accept empty params", function () {
         assert.ok(new AssetComputeEvents());
 
         assert.ok(new AssetComputeEvents({}));
     });
 
-    it("getProviderId", function() {
+    it("getProviderId", function () {
         const events = new AssetComputeEvents(FAKE_PARAMS);
         assert.equal(events.getProviderId(), "asset_compute_orgId_clientId");
     });
 
-    it("getProviderId - clientId in auth", function() {
+    it("getProviderId - clientId in auth", function () {
         const events = new AssetComputeEvents(FAKE_PARAMS);
         assert.equal(events.getProviderId(), "asset_compute_orgId_clientId");
     });
 
 
-    it("sendEvent - file system", async function() {
+    it("sendEvent - file system", async function () {
         const fsEventDir = tmp.dirSync().name;
         process.env.ASSET_COMPUTE_UNIT_TEST_OUT = fsEventDir;
 
         // make sure to not include params.auth since that is missing for unit tests
         const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);
-        await events.sendEvent("my_event", {test: "value"});
+        await events.sendEvent("my_event", { test: "value" });
 
         const writtenEvent = JSON.parse(fs.readFileSync(`${fsEventDir}/events/event0.json`).toString());
         delete writtenEvent.date; // ignore
@@ -84,7 +84,7 @@ describe("AssetComputeEvents", function() {
             requestId: "requestId"
         });
 
-        await events.sendEvent("my_event", {test: "value2"});
+        await events.sendEvent("my_event", { test: "value2" });
         const writtenEvent2 = JSON.parse(fs.readFileSync(`${fsEventDir}/events/event1.json`).toString());
         delete writtenEvent2.date; // ignore
         assert.deepStrictEqual(writtenEvent2, {
@@ -94,29 +94,62 @@ describe("AssetComputeEvents", function() {
         });
     });
 
-    it("sendEvent - handled error if no auth", async function() {
+    it("sendEvent - handled error if no auth", async function () {
         // not setting this
         delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
 
         // ...and not setting params.auth
         const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);
-        await events.sendEvent("my_event", {test: "value"});
+        await events.sendEvent("my_event", { test: "value" });
         // should not throw an error
     });
 
-    it("sendEvent - handled error if no auth, should open circuit breaker", async function() {
+    it("sendEvent - handled error if no auth, should open circuit breaker", async function () {
         // not setting this
         delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
 
-        for(let i = 0; i < 10; i++){
+        for (let i = 0; i < 10; i++) {
             // ...and not setting params.auth
             const events = new AssetComputeEvents(FAKE_PARAMS_NO_AUTH);
-            await events.sendEvent("my_event", {test: "value"});
+            await events.sendEvent("my_event", { test: "value" });
             // should not throw an error
         }
     }).timeout(60000);
 
-    it("sendEvent - IO events", async function() {
+    it("sendEvent - IO events, should trigger bulkhead", async function () {
+        const inflightEvents = [];
+
+        nock("https://eg-ingress.adobe.io")
+            .filteringRequestBody(body => {
+                body = JSON.parse(body);
+                body.event = JSON.parse(Buffer.from(body.event, 'base64').toString());
+                delete body.event.date;
+                // console.log("IO Events mock received:", body);
+                return body;
+            })
+            .post("/api/events", {
+                user_guid: "orgId",
+                provider_id: "asset_compute_orgId_clientId",
+                event_code: AssetComputeEvents.EVENT_CODE,
+                event: {
+                    type: "my_event",
+                    test: "value",
+                    requestId: "requestId"
+                }
+            })
+            .times(79)
+            .reply(200, {});
+
+        for (let i = 0; i < 80; i++) {
+            const events = new AssetComputeEvents(FAKE_PARAMS);
+            const eventSendingTask = events.sendEvent("my_event", { test: "value" });
+            inflightEvents.push(eventSendingTask);
+        }
+
+        await Promise.all(inflightEvents);
+    }).timeout(60000);
+
+    it("sendEvent - IO events", async function () {
         const nockSendEvent = nock("https://eg-ingress.adobe.io")
             .filteringRequestBody(body => {
                 body = JSON.parse(body);
@@ -138,12 +171,12 @@ describe("AssetComputeEvents", function() {
             .reply(200, {});
 
         const events = new AssetComputeEvents(FAKE_PARAMS);
-        await events.sendEvent("my_event", {test: "value"});
+        await events.sendEvent("my_event", { test: "value" });
 
         assert.ok(nockSendEvent.isDone(), "io event not properly sent");
     });
 
-    it("sendEvent - IO events failure, triggering error metric", async function() {
+    it("sendEvent - IO events failure, triggering error metric", async function () {
         const nockSendEvent = nock("https://eg-ingress.adobe.io")
             .post("/api/events")
             .reply(500, {});
@@ -154,10 +187,8 @@ describe("AssetComputeEvents", function() {
         const events = new AssetComputeEvents({
             ...FAKE_PARAMS,
             metrics: new AssetComputeMetrics(FAKE_PARAMS, { sendImmediately: true })
-        },
-        false
-        );
-        await events.sendEvent("my_event", {test: "value"});
+        }, false);
+        await events.sendEvent("my_event", { test: "value" });
 
         assert.ok(nockSendEvent.isDone(), "io event not tried");
 
