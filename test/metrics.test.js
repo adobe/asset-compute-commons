@@ -134,6 +134,24 @@ describe("AssetComputeMetrics", function() {
         }]);
     });
 
+    it("sendMetrics - does nothing on multiple calls to `activationStarted()`", async function() {
+        const receivedMetrics = MetricsTestHelper.mockNewRelic();
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        await metrics.activationStarted({ test: "value" });
+        await metrics.activationStarted({ test: "value2" }); // should only send activation_start metrics once
+
+        await MetricsTestHelper.metricsDone(500);
+        MetricsTestHelper.assertArrayContains(receivedMetrics, [{
+            eventType: EVENT_TYPE,
+            test: "value"
+        },{
+            eventType: "activation_start",
+            test: "value"
+        }]);
+    });
+
     it("sendMetrics - does nothing on multiple calls to `activationFinished()`", async function() {
         const receivedMetrics = MetricsTestHelper.mockNewRelic();
 
@@ -153,6 +171,20 @@ describe("AssetComputeMetrics", function() {
         }]);
     });
 
+    it("sendMetrics - no activation_start metrics", async function() {
+        const receivedMetrics = MetricsTestHelper.mockNewRelic();
+
+        const metrics = new AssetComputeMetrics(FAKE_PARAMS);
+        await metrics.sendMetrics(EVENT_TYPE, { test: "value" });
+        await metrics.activationStarted({}, false);
+
+        await MetricsTestHelper.metricsDone();
+        MetricsTestHelper.assertArrayContains(receivedMetrics, [{
+            eventType: EVENT_TYPE,
+            test: "value"
+        }]);
+    });
+    
     it("sendMetrics - no activation metrics", async function() {
         const receivedMetrics = MetricsTestHelper.mockNewRelic();
 

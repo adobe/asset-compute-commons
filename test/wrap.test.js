@@ -35,7 +35,7 @@ describe("wrap", function() {
     });
 
     describe("metrics", function() {
-        it('wraps an action and provides metrics', async function() {
+        it('wraps an action and provides activation and activation_start metrics', async function() {
             const receivedMetrics = MetricsTestHelper.mockNewRelic();
 
             function main(params) {
@@ -66,8 +66,12 @@ describe("wrap", function() {
             assert.equal(result.ok, true);
 
             await MetricsTestHelper.metricsDone();
-            assert.equal(receivedMetrics.length, 1);
+            assert.equal(receivedMetrics.length, 2);
             MetricsTestHelper.assertObjectMatches(receivedMetrics[0], {
+                eventType: "activation_start",
+                timestamp: /\d+/
+            });
+            MetricsTestHelper.assertObjectMatches(receivedMetrics[1], {
                 eventType: "activation",
                 timestamp: /\d+/,
                 duration: /\d+/,
