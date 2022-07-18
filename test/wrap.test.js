@@ -187,6 +187,55 @@ describe("wrap", function() {
                 my: "metric"
             }]);
         });
+
+        it('metrics wrapper proceeds gracefully on activation_start metric error', async function() {
+
+            // respond to first NR request with failure
+            nock(MetricsTestHelper.MOCK_BASE_URL)
+                .post(MetricsTestHelper.MOCK_URL_PATH)
+                .reply(500);
+
+            // subsequent NR requests hit regular/successul mock
+            const receivedMetrics = MetricsTestHelper.mockNewRelic();
+
+            function main(params) {
+                assert.equal(typeof params, "object");
+
+                // passed in params
+                assert.equal(params.key, "value");
+
+                // metrics from wrapper
+                assert.equal(typeof params.metrics, "object");
+
+                params.metrics.add({
+                    my: "metric"
+                });
+
+                return { ok: true };
+            }
+
+            const finalMain = actionWrapper(main);
+
+            const params = {
+                newRelicEventsURL: MetricsTestHelper.MOCK_URL,
+                newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
+                key: "value"
+            };
+
+            const result = await finalMain(params);
+            assert.equal(result.ok, true);
+
+            await MetricsTestHelper.metricsDone();
+
+            // no activation_start metric should be received
+            assert.equal(receivedMetrics.length, 1);
+            MetricsTestHelper.assertObjectMatches(receivedMetrics[0], {
+                eventType: "activation",
+                timestamp: /\d+/,
+                duration: /\d+/,
+                my: "metric"
+            });
+        });
     });
 
     describe("checkAction", function() {
