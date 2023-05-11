@@ -9,7 +9,7 @@
   },
   "repository": "adobe/asset-compute-commons",
   "dependencies": {
-    "@adobe/asset-compute-events-client": "^1.2.0",
+    "@adobe/asset-compute-events-client": "git+https://github.com:adobe/asset-compute-events-client.git#ASSETS-8906",
     "@adobe/openwhisk-newrelic": "^2.0.0",
     "clone": "^2.1.2",
     "tmp": "^0.2.1",
