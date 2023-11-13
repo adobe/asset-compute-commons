@@ -13,11 +13,6 @@
 'use strict';
 
 const AssetComputeWebhookEvents = require('../lib/webhook');
-const AssetComputeMetrics = require('../lib/metrics');
-const jsonwebtoken = require('jsonwebtoken');
-const tmp = require('tmp');
-const fs = require('fs');
-const nock = require('nock');
 const assert = require('assert');
 const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
 
@@ -26,24 +21,6 @@ const FAKE_WEBHOOK_OPTIONS = {
     webhookUrl: FAKE_WEBHOOK_URL,
     orgId: "orgId",
     clientId: "clientId"
-};
-const FAKE_PARAMS = {
-    newRelicEventsURL: MetricsTestHelper.MOCK_URL,
-    newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
-    requestId:"requestId",
-    auth: {
-        orgId: "orgId",
-        clientId: "clientId",
-        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
-        appName:"appName",
-        webhookUrl: FAKE_WEBHOOK_URL
-    }
-};
-
-const FAKE_PARAMS_NO_AUTH = {
-    newRelicEventsURL: MetricsTestHelper.MOCK_URL,
-    newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
-    requestId:"requestId",
 };
 
 describe("AssetComputeWebhookEvents", function() {
