@@ -187,7 +187,6 @@ describe("AssetComputeEvents", function() {
         const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL)
             .filteringRequestBody(body => {
                 body = JSON.parse(body);
-                body.event = JSON.parse(body.event);
                 delete body.event.date;
                 console.log("Webhook mock received:", body);
                 return body;
@@ -242,4 +241,5 @@ describe("AssetComputeEvents", function() {
             location: "WebhookEvents"
         }]);
     });
+
 });
