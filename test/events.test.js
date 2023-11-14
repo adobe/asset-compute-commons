@@ -40,6 +40,32 @@ const FAKE_PARAMS_NO_AUTH = {
     requestId:"requestId",
 };
 
+const FAKE_WEBHOOK_URL = "https://some-webhook-url.com";
+const FAKE_WEBHOOK_PARAMS = {
+    newRelicEventsURL: MetricsTestHelper.MOCK_URL,
+    newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
+    requestId:"requestId",
+    auth: {
+        orgId: "orgId",
+        clientId: "clientId",
+        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
+        appName:"appName",
+        isServiceAccount: true,
+        webhookUrl: FAKE_WEBHOOK_URL
+    }
+};
+const FAKE_WEBHOOK_PARAMS_NO_WEBHOOK = {
+    newRelicEventsURL: MetricsTestHelper.MOCK_URL,
+    newRelicApiKey: MetricsTestHelper.MOCK_API_KEY,
+    requestId:"requestId",
+    auth: {
+        orgId: "orgId",
+        clientId: "clientId",
+        accessToken: jsonwebtoken.sign({client_id: "clientId"}, "key"),
+        appName:"appName"
+    }
+};
+
 describe("AssetComputeEvents", function() {
     beforeEach(function() {
         delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
@@ -154,4 +180,66 @@ describe("AssetComputeEvents", function() {
             location: "IOEvents"
         }]);
     });
+
+    it("sendEvent - Webhook events", async function() {
+        // not setting this
+        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
+        const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL)
+            .filteringRequestBody(body => {
+                body = JSON.parse(body);
+                delete body.event.date;
+                console.log("Webhook mock received:", body);
+                return body;
+            })
+            .post("/", {
+                user_guid: "orgId",
+                event_code: AssetComputeEvents.EVENT_CODE,
+                event: {
+                    test: "value",
+                    type: "my_event",
+                    requestId: "requestId"
+                }
+            })
+            .reply(200, {});
+        const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
+        await events.sendEvent("my_event", {test: "value"});
+        assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
+    });
+
+    it("sendEvent - webhook handled error if no webhook", async function() {
+        // not setting this
+        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
+
+        // ...and not setting params.auth.webhookurl
+        // fallbacks to send events to IO and should fail
+        const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS_NO_WEBHOOK);
+        await events.sendEvent("my_event", {test: "value"});
+        // should not throw an error
+    });
+
+    it("sendEvent - Webhook events failure, triggering error metric", async function() {
+        const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL)
+            .post("/")
+            .reply(500, {});
+        const receivedMetrics = MetricsTestHelper.mockNewRelic();
+
+        process.env.__OW_DEADLINE = Date.now() + 2000;
+
+        const events = new AssetComputeEvents({
+            ...FAKE_WEBHOOK_PARAMS,
+            metrics: new AssetComputeMetrics(FAKE_WEBHOOK_PARAMS, { sendImmediately: true })
+        },
+        false
+        );
+        await events.sendEvent("my_event", {test: "value"});
+
+        assert.ok(nockSendEventWebHook.isDone(), "io event not tried");
+
+        await MetricsTestHelper.metricsDone();
+        MetricsTestHelper.assertArrayContains(receivedMetrics, [{
+            eventType: "error",
+            location: "WebhookEvents"
+        }]);
+    });
+
 });
