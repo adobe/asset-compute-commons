@@ -21,7 +21,7 @@ const path = require('path');
 const nock = require('nock');
 const assert = require('assert');
 const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
-const { generateHMACSignature, verifyHMACSign } = require('../lib/hmac-signature');
+const { verifyHMACSign } = require('../lib/hmac-signature');
 
 
 const FAKE_PARAMS = {
