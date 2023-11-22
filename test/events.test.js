@@ -238,7 +238,7 @@ describe("AssetComputeEvents", function() {
         );
         await events.sendEvent("my_event", {test: "value"});
 
-        assert.ok(nockSendEventWebHook.isDone(), "io event not tried");
+        assert.ok(nockSendEventWebHook.isDone(), "webhook event not tried");
 
         await MetricsTestHelper.metricsDone();
         MetricsTestHelper.assertArrayContains(receivedMetrics, [{
@@ -255,6 +255,15 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
         privateKey = fs.readFileSync(pvtkeyFilePath, 'utf8');
         publicKey = fs.readFileSync(pubkeyFilePath, 'utf8');
     });
+    beforeEach(function() {
+        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
+        MetricsTestHelper.beforeEachTest();
+    });
+
+    afterEach(function() {
+        MetricsTestHelper.afterEachTest();
+    });
+
 
     it("sendEvent - Webhook events with hmac signature exists", async function() {
         const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL,{
@@ -318,6 +327,42 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
         await events.sendEvent("my_event", {test: "value"});
         assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
         assert.ok(verifyHMACSign(webhookPayload, signatureHeader, publicKey));
+    });
+    it("sendEvent - Webhook events with hmac signature errors for invalid pvt key, sends metrics", async function() {
+        const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL)
+            .filteringRequestBody(body => {
+                body = JSON.parse(body);
+                delete body.event.date;
+                console.log("Webhook mock received:", body);
+                return body;
+            })
+            .post("/", {
+                user_guid: "orgId",
+                event_code: AssetComputeEvents.EVENT_CODE,
+                event: {
+                    test: "value",
+                    type: "my_event",
+                    requestId: "requestId"
+                }
+            })
+            .reply(200, {});
+        
+        const receivedMetrics = MetricsTestHelper.mockNewRelic();
+        process.env.__OW_DEADLINE = Date.now() + 2000;
+        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = "invalid-privateKey";
+        const events = new AssetComputeEvents({...FAKE_WEBHOOK_PARAMS,
+            metrics: new AssetComputeMetrics(FAKE_WEBHOOK_PARAMS, { sendImmediately: true })});
+        await events.sendEvent("my_event", {test: "value"});
+
+        assert.ok(!nockSendEventWebHook.isDone(), "webhook event should not be tried");
+
+        await MetricsTestHelper.metricsDone();
+        MetricsTestHelper.assertArrayContains(receivedMetrics, [{
+            eventType: "error",
+            location: "WebhookEvents"
+        }]);
+
+        
     });
 
 });
