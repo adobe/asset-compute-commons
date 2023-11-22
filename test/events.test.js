@@ -242,4 +242,29 @@ describe("AssetComputeEvents", function() {
         }]);
     });
 
+    it("sendEvent - Webhook events with hmac signature", async function() {
+        // not setting this
+        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
+        const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL)
+            .filteringRequestBody(body => {
+                body = JSON.parse(body);
+                delete body.event.date;
+                console.log("Webhook mock received:", body);
+                return body;
+            })
+            .post("/", {
+                user_guid: "orgId",
+                event_code: AssetComputeEvents.EVENT_CODE,
+                event: {
+                    test: "value",
+                    type: "my_event",
+                    requestId: "requestId"
+                }
+            })
+            .reply(200, {});
+        const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
+        await events.sendEvent("my_event", {test: "value"});
+        assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
+    });
+
 });
