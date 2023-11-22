@@ -21,6 +21,7 @@ const path = require('path');
 const nock = require('nock');
 const assert = require('assert');
 const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
+const { generateHMACSignature, verifyHMACSign } = require('../lib/hmac-signature');
 
 
 const FAKE_PARAMS = {
@@ -66,6 +67,9 @@ const FAKE_WEBHOOK_PARAMS_NO_WEBHOOK = {
         appName:"appName"
     }
 };
+
+let privateKey;
+let publicKey;
 
 describe("AssetComputeEvents", function() {
     beforeEach(function() {
@@ -242,21 +246,24 @@ describe("AssetComputeEvents", function() {
             location: "WebhookEvents"
         }]);
     });
+});
 
-    it("sendEvent - Webhook events with hmac signature using pvt-pub keypair", async function() {
-        const { generateHMACSignature, verifyHMACSign } = require('../lib/hmac-signature');
+describe("HMACSignature sendEvent - Webhook events with hmac signature", function() {
+    before(() => {
         const pvtkeyFilePath = path.join(__dirname, 'resources/test-private.pem');
         const pubkeyFilePath = path.join(__dirname, 'resources/test-public.pem');
-        const privateKey = fs.readFileSync(pvtkeyFilePath, 'utf8');
-        const publicKey = fs.readFileSync(pubkeyFilePath, 'utf8');
-        let signature;
-        let payload;
-        // not setting this
-        process.env.HMAC_PRIVATE_KEY = privateKey;
-        const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL)
+        privateKey = fs.readFileSync(pvtkeyFilePath, 'utf8');
+        publicKey = fs.readFileSync(pubkeyFilePath, 'utf8');
+    });
+
+    it("sendEvent - Webhook events with hmac signature exists", async function() {
+        const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL,{
+            reqheaders: {
+                'x-ims-org-id': () => true,
+                'x-ac-hmac-signature': (val) => val && val.length > 0
+            }
+        })
             .filteringRequestBody(body => {
-                signature = generateHMACSignature(body, privateKey);
-                payload = body;
                 body = JSON.parse(body);
                 delete body.event.date;
                 console.log("Webhook mock received:", body);
@@ -272,12 +279,45 @@ describe("AssetComputeEvents", function() {
                 }
             })
             .reply(200, {});
-
+        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = privateKey;
         const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
         await events.sendEvent("my_event", {test: "value"});
         assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
-        delete process.env.HMAC_PRIVATE_KEY;
-        assert.ok(verifyHMACSign(payload, signature, publicKey));
+    });
+    it("sendEvent - Webhook events with hmac signature using pvt-pub keypair", async function() {
+        let webhookPayload;        
+        let signatureHeader;
+        const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL,{
+            reqheaders: {
+                'x-ims-org-id': () => true,
+                'x-ac-hmac-signature': (val) => {
+                    signatureHeader = val;
+                    return val && val.length > 0;
+                }
+            }
+        })
+            .filteringRequestBody(body => {
+                webhookPayload = body;
+                body = JSON.parse(body);
+                delete body.event.date;
+                console.log("Webhook mock received:", body);
+                return body;
+            })
+            .post("/", {
+                user_guid: "orgId",
+                event_code: AssetComputeEvents.EVENT_CODE,
+                event: {
+                    test: "value",
+                    type: "my_event",
+                    requestId: "requestId"
+                }
+            })
+            .reply(200, {});
+        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = privateKey;
+        const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
+        await events.sendEvent("my_event", {test: "value"});
+        assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
+        assert.ok(verifyHMACSign(webhookPayload, signatureHeader, publicKey));
     });
 
 });
