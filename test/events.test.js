@@ -17,6 +17,7 @@ const AssetComputeMetrics = require('../lib/metrics');
 const jsonwebtoken = require('jsonwebtoken');
 const tmp = require('tmp');
 const fs = require('fs');
+const path = require('path');
 const nock = require('nock');
 const assert = require('assert');
 const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
@@ -242,11 +243,20 @@ describe("AssetComputeEvents", function() {
         }]);
     });
 
-    it("sendEvent - Webhook events with hmac signature", async function() {
+    it("sendEvent - Webhook events with hmac signature using pvt-pub keypair", async function() {
+        const { generateHMACSignature, verifyHMACSign } = require('../lib/hmac-signature');
+        const pvtkeyFilePath = path.join(__dirname, 'resources/test-private.pem');
+        const pubkeyFilePath = path.join(__dirname, 'resources/test-public.pem');
+        const privateKey = fs.readFileSync(pvtkeyFilePath, 'utf8');
+        const publicKey = fs.readFileSync(pubkeyFilePath, 'utf8');
+        let signature;
+        let payload;
         // not setting this
-        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
+        process.env.HMAC_PRIVATE_KEY = privateKey;
         const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL)
             .filteringRequestBody(body => {
+                signature = generateHMACSignature(body, privateKey);
+                payload = body;
                 body = JSON.parse(body);
                 delete body.event.date;
                 console.log("Webhook mock received:", body);
@@ -262,9 +272,12 @@ describe("AssetComputeEvents", function() {
                 }
             })
             .reply(200, {});
+
         const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
         await events.sendEvent("my_event", {test: "value"});
         assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
+        delete process.env.HMAC_PRIVATE_KEY;
+        assert.ok(verifyHMACSign(payload, signature, publicKey));
     });
 
 });
