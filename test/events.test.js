@@ -68,7 +68,7 @@ const FAKE_WEBHOOK_PARAMS_NO_WEBHOOK = {
     }
 };
 
-let privateKey;
+let base64privateKey;
 let publicKey;
 
 describe("AssetComputeEvents", function() {
@@ -191,9 +191,9 @@ describe("AssetComputeEvents", function() {
 
 describe("HMACSignature sendEvent - Webhook events with hmac signature", function() {
     before(() => {
-        const pvtkeyFilePath = path.join(__dirname, 'resources/test-private.pem');
+        const base64pvtkeyFilePath = path.join(__dirname, 'resources/test-private-base64.txt');
         const pubkeyFilePath = path.join(__dirname, 'resources/test-public.pem');
-        privateKey = fs.readFileSync(pvtkeyFilePath, 'utf8');
+        base64privateKey = fs.readFileSync(base64pvtkeyFilePath, 'utf8');
         publicKey = fs.readFileSync(pubkeyFilePath, 'utf8');
     });
     beforeEach(function() {
@@ -225,7 +225,7 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
                 }
             })
             .reply(200, {});
-        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = privateKey;
+        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = base64privateKey;
         const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
         await events.sendEvent("my_event", {test: "value"});
         assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
@@ -249,7 +249,7 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
         const receivedMetrics = MetricsTestHelper.mockNewRelic();
 
         process.env.__OW_DEADLINE = Date.now() + 2000;
-        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = privateKey;
+        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = base64privateKey;
         const events = new AssetComputeEvents({
             ...FAKE_WEBHOOK_PARAMS,
             metrics: new AssetComputeMetrics(FAKE_WEBHOOK_PARAMS, { sendImmediately: true })
@@ -290,7 +290,7 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
                 }
             })
             .reply(200, {});
-        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = privateKey;
+        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = base64privateKey;
         const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
         await events.sendEvent("my_event", {test: "value"});
         assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
@@ -324,7 +324,7 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
                 }
             })
             .reply(200, {});
-        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = privateKey;
+        FAKE_WEBHOOK_PARAMS.hmacPrivateKey = base64privateKey;
         const events = new AssetComputeEvents(FAKE_WEBHOOK_PARAMS);
         await events.sendEvent("my_event", {test: "value"});
         assert.ok(nockSendEventWebHook.isDone(), "webhook event not properly sent");
