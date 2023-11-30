@@ -21,7 +21,6 @@ const path = require('path');
 let base64privateKey;
 let publicKey;
 
-
 describe("HMACSignature", function() {
     before(() => {
         const base64pvtkeyFilePath = path.join(__dirname, 'resources/test-private-base64.txt');
