@@ -264,23 +264,6 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
             location: "WebhookEvents"
         }]);
     });
-});
-
-describe("HMACSignature sendEvent - Webhook events with hmac signature", function() {
-    before(() => {
-        const pvtkeyFilePath = path.join(__dirname, 'resources/test-private.pem');
-        const pubkeyFilePath = path.join(__dirname, 'resources/test-public.pem');
-        privateKey = fs.readFileSync(pvtkeyFilePath, 'utf8');
-        publicKey = fs.readFileSync(pubkeyFilePath, 'utf8');
-    });
-    beforeEach(function() {
-        delete process.env.ASSET_COMPUTE_UNIT_TEST_OUT;
-        MetricsTestHelper.beforeEachTest();
-    });
-
-    afterEach(function() {
-        MetricsTestHelper.afterEachTest();
-    });
 
     it("sendEvent - Webhook events with hmac signature exists", async function() {
         const nockSendEventWebHook = nock(FAKE_WEBHOOK_URL,{
@@ -421,5 +404,4 @@ describe("HMACSignature sendEvent - Webhook events with hmac signature", functio
             location: "WebhookEvents"
         }]);
     });
-
 });
