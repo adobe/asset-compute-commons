@@ -18,15 +18,14 @@ const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
 const fs = require('fs');
 const path = require('path');
 
-let privateKey;
+let base64privateKey;
 let publicKey;
-// const  = fs.readFileSync('./test-public.pem');
 
 describe("HMACSignature", function() {
     before(() => {
-        const pvtkeyFilePath = path.join(__dirname, 'resources/test-private.pem');
+        const base64pvtkeyFilePath = path.join(__dirname, 'resources/test-private-base64.txt');
         const pubkeyFilePath = path.join(__dirname, 'resources/test-public.pem');
-        privateKey = fs.readFileSync(pvtkeyFilePath, 'utf8');
+        base64privateKey = fs.readFileSync(base64pvtkeyFilePath, 'utf8');
         publicKey = fs.readFileSync(pubkeyFilePath, 'utf8');
     });
     beforeEach(function() {
@@ -38,17 +37,21 @@ describe("HMACSignature", function() {
         MetricsTestHelper.afterEachTest();
     });
 
-    it("should generate HMACSignature", function() {
+    it("should generate HMACSignature using base64 pvtkey", function() {
         const data = 'Some data to sign';
-        const signature = generateHMACSignature(data, privateKey);
+        const base64DecodeprivateKey = Buffer.from(base64privateKey, 'base64');
+        const signature = generateHMACSignature(data, base64DecodeprivateKey);
         assert.ok(signature);    
     });
-    it("should verify HMAC signature", function() {
+    
+    it("should verify HMAC signature using base64 pvtkey", function() {
         const data = 'Some data to sign';
-        const signature = generateHMACSignature(data, privateKey);
+        const base64DecodeprivateKey = Buffer.from(base64privateKey, 'base64');
+        const signature = generateHMACSignature(data, base64DecodeprivateKey);
         assert.ok(verifyHMACSign(data, signature, publicKey));
     });
-    it("should verify HMAC signature payload", function() {
+
+    it("should verify HMAC signature payload using base64 pvtkey", function() {
         const jsonData = {
             "user_guid": "test@AdobeOrg",
             "event_code": "asset_compute",
@@ -82,13 +85,15 @@ describe("HMACSignature", function() {
             }
         };
         const data = JSON.stringify(jsonData);
-        const signature = generateHMACSignature(data, privateKey);
+        const base64DecodeprivateKey = Buffer.from(base64privateKey, 'base64');
+        const signature = generateHMACSignature(data, base64DecodeprivateKey);
         assert.ok(verifyHMACSign(data, signature, publicKey));
     });
 
     it("should fail HMAC signature verification if data changes", function() {
         let data = 'Some data to sign';
-        const signature = generateHMACSignature(data, privateKey);
+        const base64DecodeprivateKey = Buffer.from(base64privateKey, 'base64');
+        const signature = generateHMACSignature(data, base64DecodeprivateKey);
         data = 'data changes';
         assert.ok(!verifyHMACSign(data, signature, publicKey));
     });
