@@ -21,7 +21,8 @@ const {
     SourceFormatUnsupportedError,
     SourceUnsupportedError,
     SourceCorruptError,
-    RenditionTooLarge
+    RenditionTooLarge,
+    ServiceOverLoadError
 } = require('../lib/errors');
 
 describe("errors", function() {
@@ -96,6 +97,18 @@ describe("errors", function() {
             assert.equal(e.name, "RenditionTooLarge");
             assert.equal(e.message, "hi ho");
             assert.equal(e.reason, Reason.RenditionTooLarge);
+        }
+    });
+
+    it("ServiceOverLoadError", function() {
+        try {
+            throw new ServiceOverLoadError("too many requests");
+        } catch (e) {
+            assert.ok(e instanceof ClientError);
+            assert.ok(e instanceof ServiceOverLoadError);
+            assert.equal(e.name, "ServiceOverLoadError");
+            assert.equal(e.message, "too many requests");
+            assert.equal(e.reason, Reason.ServiceOverLoad);
         }
     });
 });
