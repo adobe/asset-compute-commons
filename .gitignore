@@ -69,3 +69,7 @@ dist/
 
 # Important Documentation
 !.github/**
+
+# IntelliJ IDEA
+.idea
+*.iml
