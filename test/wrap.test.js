@@ -16,6 +16,17 @@ const actionWrapper = require("../lib/wrap");
 const assert = require('assert');
 const nock = require('nock');
 const MetricsTestHelper = require("@adobe/openwhisk-newrelic/lib/testhelper");
+const sinon = require('sinon');
+const rewire = require('rewire');
+
+// Exercise the full action wrapper with deterministic telemetry failures and
+// no network/instrumentation. Keep production dependency behaviour untouched.
+function wrapperWithMetrics(metrics) {
+    const module = rewire('../lib/wrap');
+    module.__set__('AssetComputeMetrics', function() { return metrics; });
+    module.__set__('NewRelic', { instrument: main => main });
+    return module;
+}
 
 describe("wrap", function() {
 
@@ -35,6 +46,63 @@ describe("wrap", function() {
     });
 
     describe("metrics", function() {
+        for (const synchronous of [false, true]) {
+            it(`preserves the original worker error when error telemetry ${synchronous ? "throws" : "rejects"}`, async function() {
+                const telemetryError = new Error("telemetry failed");
+                const metrics = {
+                    activationStarted: sinon.stub().resolves(),
+                    handleError: synchronous ? sinon.stub().throws(telemetryError) : sinon.stub().rejects(telemetryError),
+                    activationFinished: sinon.stub()
+                };
+                const wrap = wrapperWithMetrics(metrics);
+                const original = Object.assign(new Error("download failed"), {
+                    requestId: "req",
+                    invocationFailed: true,
+                    noRetry: true,
+                    renditionOutcomes: [{ index: 0, status: "failed", errorType: "SourceCorrupt", message: "download failed" }]
+                });
+                const log = sinon.stub(console, 'error');
+                try {
+                    await assert.rejects(wrap(async function() { throw original; })({}), function(err) {
+                        assert.strictEqual(err, original, "telemetry must not replace or reconstruct the worker error");
+                        assert.strictEqual(err.requestId, "req");
+                        assert.strictEqual(err.invocationFailed, true);
+                        assert.strictEqual(err.noRetry, true);
+                        assert.deepStrictEqual(err.renditionOutcomes, original.renditionOutcomes);
+                        return true;
+                    });
+                    assert.strictEqual(metrics.handleError.callCount, 1);
+                    assert.strictEqual(metrics.handleError.firstCall.args[0], original);
+                    assert.strictEqual(metrics.activationFinished.callCount, 1);
+                    assert.strictEqual(log.callCount, 1);
+                    assert.strictEqual(log.firstCall.args[1], telemetryError);
+                } finally {
+                    log.restore();
+                }
+            });
+        }
+
+        it('preserves ordinary legacy errors when error telemetry rejects', async function() {
+            const metrics = {
+                activationStarted: sinon.stub().resolves(),
+                handleError: sinon.stub().rejects(new Error("telemetry failed")),
+                activationFinished: sinon.stub()
+            };
+            const wrap = wrapperWithMetrics(metrics);
+            const original = new Error("legacy worker failed");
+            const log = sinon.stub(console, 'error');
+            try {
+                await assert.rejects(wrap(function() { throw original; })({}), function(err) {
+                    assert.strictEqual(err, original);
+                    assert.strictEqual(err.renditionOutcomes, undefined);
+                    return true;
+                });
+                assert.strictEqual(metrics.activationFinished.callCount, 1);
+            } finally {
+                log.restore();
+            }
+        });
+
         it('wraps an action and provides activation and activation_start metrics', async function() {
             const receivedMetrics = MetricsTestHelper.mockNewRelic();
 
